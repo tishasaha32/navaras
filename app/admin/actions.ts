@@ -3,11 +3,10 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { MAX_AUDIO_MB, MAX_VIDEO_MB, type Hub } from "@/lib/content/hub";
-import { PAGE_SCHEMAS, type PageKey } from "@/lib/content/pages";
 import { UPLOAD_NAME } from "@/lib/content/images";
 import { deleteUnusedUpload, publish, saveDraft } from "@/lib/content/store";
 import { saveUpload } from "@/lib/content/uploads";
-import { parseHub, parsePageDoc } from "@/lib/content/validate";
+import { parseHub } from "@/lib/content/validate";
 
 export type ActionResult = { ok: true; url?: string } | { ok: false; error: string };
 
@@ -23,26 +22,13 @@ function refresh() {
   revalidatePath("/", "layout");
 }
 
-/** Save a page (landing, dance, weddings, dresses) as a draft, or publish it to the site. */
-export async function savePage(pageKey: string, data: unknown, mode: "draft" | "publish"): Promise<ActionResult> {
-  await requireAdmin();
-  const schema = PAGE_SCHEMAS[pageKey as PageKey];
-  if (!schema) return { ok: false, error: "Unknown page." };
-  const parsed = parsePageDoc(schema, data);
-  if (!parsed.ok) return parsed;
-  if (mode === "publish") await publish(schema.key, parsed.doc);
-  else await saveDraft(schema.key, parsed.doc);
-  refresh();
-  return { ok: true };
-}
-
 /** Save the whole Natyashastra Hub (categories, sections, chapters, quizzes). */
 export async function saveHub(data: unknown, mode: "draft" | "publish"): Promise<ActionResult & { hub?: Hub }> {
   await requireAdmin();
   const parsed = parseHub(data, mode === "publish");
   if (!parsed.ok) return parsed;
-  if (mode === "publish") await publish("hub", parsed.hub);
-  else await saveDraft("hub", parsed.hub);
+  if (mode === "publish") await publish(parsed.hub);
+  else await saveDraft(parsed.hub);
   refresh();
   return { ok: true, hub: parsed.hub };
 }

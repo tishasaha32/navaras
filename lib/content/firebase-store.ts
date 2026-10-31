@@ -2,12 +2,10 @@ import type { Firestore, QueryDocumentSnapshot, WriteBatch } from "firebase-admi
 import { firestore } from "@/lib/firebase-admin";
 import type { Category, Chapter, Hub, HubSection, Quiz } from "./hub";
 import { hubChanges } from "./hub-docs";
-import type { PageDoc, PageKey } from "./pages";
 
 /**
- * Site content in Firestore:
+ * The Natyashastra Hub in Firestore:
  *   content/{live|draft}                                   { hub: true } once it holds a Hub
- *   content/{live|draft}/pages/{page}                      one page's sections
  *   content/{live|draft}/categories/{id}
  *   content/{live|draft}/sections/{id}                     with `cat`, the category's id
  *   content/{live|draft}/sections/{id}/chapters/{id}
@@ -16,10 +14,7 @@ import type { PageDoc, PageKey } from "./pages";
  */
 type Version = "live" | "draft";
 
-export type Stored = {
-  live: { pages: Partial<Record<PageKey, PageDoc>>; hub?: Hub };
-  drafts: Partial<Record<PageKey, PageDoc>> & { hub?: Hub };
-};
+export type Stored = { live: { hub?: Hub }; drafts: { hub?: Hub } };
 
 /** Firestore takes at most 500 writes at a time. */
 const BATCH = 400;
@@ -47,15 +42,10 @@ async function readHub(db: Firestore, version: Version): Promise<Hub | undefined
   };
 }
 
-async function readPages(db: Firestore, version: Version) {
-  const pages = await root(db, version).collection("pages").get();
-  return Object.fromEntries(pages.docs.map((d) => [d.id, d.data() as PageDoc])) as Partial<Record<PageKey, PageDoc>>;
-}
-
 export async function readContent(): Promise<Stored> {
   const db = firestore();
-  const [livePages, liveHub, draftPages, draftHub] = await Promise.all([readPages(db, "live"), readHub(db, "live"), readPages(db, "draft"), readHub(db, "draft")]);
-  return { live: { pages: livePages, hub: liveHub }, drafts: { ...draftPages, hub: draftHub } };
+  const [live, draft] = await Promise.all([readHub(db, "live"), readHub(db, "draft")]);
+  return { live: { hub: live }, drafts: { hub: draft } };
 }
 
 async function writeHub(db: Firestore, version: Version, before: Hub | undefined, after: Hub | null) {
@@ -83,14 +73,4 @@ export async function publishHub(hub: Hub) {
   const db = firestore();
   await writeHub(db, "live", await readHub(db, "live"), hub);
   await writeHub(db, "draft", await readHub(db, "draft"), null);
-}
-
-export async function saveDraftPage(key: PageKey, doc: PageDoc) {
-  await root(firestore(), "draft").collection("pages").doc(key).set(doc);
-}
-
-export async function publishPage(key: PageKey, doc: PageDoc) {
-  const db = firestore();
-  await root(db, "live").collection("pages").doc(key).set(doc);
-  await root(db, "draft").collection("pages").doc(key).delete();
 }

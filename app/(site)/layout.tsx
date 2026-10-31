@@ -15,7 +15,6 @@ export default async function SiteLayout({ children }: Readonly<{ children: Reac
         <div className="preview-bar" role="status">
           Previewing saved drafts — visitors don’t see these changes yet.
           {/* A plain link: <Link> could prefetch this route handler and end the preview. */}
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/admin/preview/exit">Exit preview</a>
         </div>
       )}

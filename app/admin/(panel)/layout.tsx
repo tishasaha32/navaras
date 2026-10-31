@@ -1,16 +1,6 @@
 import Link from "next/link";
-import AdminTopNav from "@/components/admin/AdminTopNav";
-import { PAGE_SCHEMAS } from "@/lib/content/pages";
 
 export const dynamic = "force-dynamic";
-
-const links = [
-  { href: "/admin/natyashastra-hub", label: "Natyashastra Hub" },
-  { href: `/admin/${PAGE_SCHEMAS.landing.slug}`, label: PAGE_SCHEMAS.landing.label },
-  { href: `/admin/${PAGE_SCHEMAS.dance.slug}`, label: PAGE_SCHEMAS.dance.label },
-  { href: `/admin/${PAGE_SCHEMAS.weddings.slug}`, label: PAGE_SCHEMAS.weddings.label },
-  { href: `/admin/${PAGE_SCHEMAS.dresses.slug}`, label: PAGE_SCHEMAS.dresses.label },
-];
 
 export default function PanelLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -23,7 +13,6 @@ export default function PanelLayout({ children }: Readonly<{ children: React.Rea
             <span className="adm-brand__name">Navaras</span>
             <span className="adm-brand__tag">Admin</span>
           </Link>
-          <AdminTopNav links={links} />
           <div className="adm-top__tools">
             <Link href="/" target="_blank" className="adm-top__link">
               View site

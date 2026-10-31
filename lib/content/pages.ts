@@ -91,7 +91,7 @@ const landing: PageSchema = {
       desc: "The first thing visitors see.",
       fields: [
         { k: "kicker", label: "Small line above the heading", t: "text", v: "नृत्य · उत्सव · शृंगार" },
-        { k: "heading", label: "Heading", t: "area", help: HIGHLIGHT_HELP, v: "Dance, celebration and costume, rooted in the *Natyashastra*." },
+        { k: "heading", label: "Heading", t: "area", help: HIGHLIGHT_HELP, v: "Dance, celebration and costume, rooted in the *Natyashastra*. xyz" },
         {
           k: "text",
           label: "Introduction",

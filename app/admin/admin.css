@@ -132,30 +132,6 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.adm-topnav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.adm .adm-topnav a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 10px;
-  color: #f3dccb;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 15px;
-}
-.adm .adm-topnav a:hover {
-  background: rgba(255, 251, 243, 0.12);
-}
-.adm .adm-topnav a[aria-current="page"] {
-  background: #fffbf3;
-  color: var(--a-maroon);
-  font-weight: 700;
-}
 .adm-top__tools {
   display: flex;
   align-items: center;
@@ -378,28 +354,12 @@
   padding-top: 28px;
   padding-bottom: 80px;
 }
-.adm-aside {
-  flex: 1 1 240px;
-  max-width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
 .adm-main {
   flex: 999 1 720px;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 22px;
-}
-.adm-panel {
-  padding: 18px;
-  border-radius: 18px;
-  background: var(--a-panel);
-  border: 1px solid var(--a-line);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 .adm-overline {
   font-size: 12px;
@@ -411,39 +371,6 @@
 .adm-overline--rose {
   color: var(--a-accent);
 }
-.adm .adm-toc {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 10px;
-  border-radius: 10px;
-  color: var(--a-text);
-  text-decoration: none;
-  font-weight: 600;
-}
-.adm .adm-toc:hover {
-  background: var(--a-sand);
-}
-.adm-toc small {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--a-muted);
-}
-.adm-note {
-  padding: 16px 18px;
-  border-radius: 18px;
-  background: var(--a-sand);
-  font-size: 14px;
-  color: var(--a-sub);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.adm-note strong {
-  color: var(--a-text);
-}
 .adm-info {
   padding: 14px 18px;
   border-radius: 14px;
@@ -451,116 +378,8 @@
   font-size: 14px;
   color: var(--a-sub);
 }
-
-/* ---------- Section cards (page editor) ---------- */
-.adm-sec {
-  border-radius: 20px;
-  background: var(--a-panel);
-  border: 1px solid var(--a-line);
-  box-shadow: 0 6px 20px rgba(94, 26, 38, 0.05);
-  overflow: hidden;
-  scroll-margin-top: 140px;
-}
-.adm-sec__head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--a-line);
-}
-.adm-sec[data-open="false"] .adm-sec__head {
-  border-bottom-color: transparent;
-}
-.adm-sec[data-hidden="true"] .adm-sec__head {
-  background: #f7efe0;
-}
-.adm-sec__title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-}
-.adm-sec__title h2 {
-  font-size: 24px;
-  line-height: 1.2;
-}
-.adm-pill {
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: #ede4cf;
-  color: var(--a-sub);
-  font-size: 12px;
-  font-weight: 700;
-}
-.adm-sec__tools {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.adm-sec__chev {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-}
-.adm-sec__chev svg {
-  transition: transform 0.15s;
-}
-.adm-sec__chev[aria-expanded="true"] svg {
-  transform: rotate(180deg);
-}
-.adm-grid {
-  padding: 22px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
-  gap: 18px;
-}
-.adm-sec[data-hidden="true"] .adm-grid {
-  opacity: 0.6;
-}
 .adm-wide {
   grid-column: 1 / -1;
-}
-
-/* Switch */
-.adm-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 0 4px;
-  border: none;
-  background: transparent;
-  color: var(--a-text);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.adm-switch__track {
-  position: relative;
-  width: 44px;
-  height: 24px;
-  border-radius: 999px;
-  background: #c9b48e;
-  transition: background 0.15s;
-}
-.adm-switch__track::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #fff;
-  transition: left 0.15s;
-}
-.adm-switch[aria-checked="true"] .adm-switch__track {
-  background: var(--a-success);
-}
-.adm-switch[aria-checked="true"] .adm-switch__track::after {
-  left: 23px;
 }
 
 /* ---------- Fields ---------- */
@@ -671,48 +490,6 @@ textarea.adm-input {
   width: 72px;
   height: 56px;
   border-radius: 8px;
-}
-
-/* Repeatable lists */
-.adm-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.adm-list__label {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: 700;
-}
-.adm-item {
-  border-radius: 14px;
-  border: 1px solid var(--a-line);
-  background: var(--a-white);
-  overflow: hidden;
-}
-.adm-item__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 10px 8px 14px;
-  background: #fbf3e4;
-  border-bottom: 1px solid var(--a-line);
-  font-weight: 700;
-  font-size: 15px;
-}
-.adm-item__tools {
-  display: flex;
-  gap: 4px;
-}
-.adm-item__grid {
-  padding: 14px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-  gap: 12px;
 }
 
 /* ---------- Hub builder ---------- */
@@ -1562,7 +1339,7 @@ textarea.adm-input {
   .adm-head h1 {
     font-size: 28px;
   }
-  .adm-grid,
+  
   .adm-card {
     padding: 16px;
   }

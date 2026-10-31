@@ -1,62 +1,11 @@
 import { z } from "zod";
 import { assignSlugs, type Hub } from "./hub";
 import { isAllowedImagePath } from "./images";
-import type { Field, PageDoc, PageSchema, SubField } from "./pages";
 import { sanitizeRichText } from "./sanitize";
 
 const image = z.union([z.literal(""), z.string().refine(isAllowedImagePath, "Pick an image from the library.")]);
 const short = z.string().trim().max(300);
 const long = z.string().trim().max(5000);
-
-function subSchema(f: SubField): z.ZodType {
-  if (f.t === "image") return image;
-  if (f.t === "area") return long;
-  // Selects whose options come from another list are checked loosely; fixed options strictly.
-  if (f.t === "select" && f.opts) return z.enum(f.opts as [string, ...string[]]);
-  return short;
-}
-
-function fieldSchema(f: Field): z.ZodType {
-  switch (f.t) {
-    case "text":
-      return short;
-    case "area":
-      return long;
-    case "select":
-      return z.enum(f.opts as [string, ...string[]]);
-    case "image":
-      return image;
-    case "list":
-      return z
-        .array(z.object(Object.fromEntries(f.sub.map((s) => [s.k, subSchema(s).catch("")]))))
-        .max(100);
-  }
-}
-
-export function parsePageDoc(schema: PageSchema, data: unknown): { ok: true; doc: PageDoc } | { ok: false; error: string } {
-  const shape = Object.fromEntries(
-    schema.sections.map((s) => [
-      s.id,
-      z.object({
-        visible: z.boolean(),
-        values: z.object(Object.fromEntries(s.fields.map((f) => [f.k, fieldSchema(f)]))),
-      }),
-    ]),
-  );
-  const parsed = z.object(shape).safeParse(data);
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    const sec = schema.sections.find((s) => s.id === issue?.path[0]);
-    const field = sec?.fields.find((f) => f.k === issue?.path[2]);
-    const where = [sec?.title, field?.label].filter(Boolean).join(" → ");
-    return { ok: false, error: `${where ? `${where}: ` : ""}${issue?.message ?? "Invalid content."}` };
-  }
-  const doc = parsed.data as PageDoc;
-  for (const s of schema.sections) if (s.fixed) doc[s.id].visible = true;
-  return { ok: true, doc };
-}
-
-/* ---------- Hub ---------- */
 
 const id = z.string().regex(/^[a-z0-9-]{1,80}$/, "Invalid id.");
 const status = z.enum(["draft", "published"]);
