@@ -9,17 +9,39 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tiptap/extension-highlight": "3.31.4",
+    "@tiptap/extension-image": "3.31.4",
+    "@tiptap/extension-placeholder": "3.31.4",
+    "@tiptap/extension-subscript": "3.31.4",
+    "@tiptap/extension-superscript": "3.31.4",
+    "@tiptap/extension-table": "3.31.4",
+    "@tiptap/extension-text-align": "3.31.4",
+    "@tiptap/extension-text-style": "3.31.4",
+    "@tiptap/extension-youtube": "3.31.4",
+    "@tiptap/pm": "3.31.4",
+    "@tiptap/react": "3.31.4",
+    "@tiptap/starter-kit": "3.31.4",
+    "firebase": "13.1.0",
+    "next": "^15.5.28",
+    "postcss": "8.5.29",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.4"
+    "sanitize-html": "2.18.1",
+    "zod": "4.6.5"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sanitize-html": "2.16.2",
     "eslint": "^9",
-    "eslint-config-next": "15.5.4",
-    "@eslint/eslintrc": "^3"
+    "eslint-config-next": "^15.5.28",
+    "typescript": "^5"
+  },
+  "overrides": {
+    "sanitize-html": {
+      "postcss": "$postcss"
+    }
   }
 }
