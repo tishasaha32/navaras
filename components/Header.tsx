@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-type NavLink = { href: string; label: string };
+type NavLink = { href: string; label: string; current?: boolean };
 
-export default function Header({ links, cta }: { links: NavLink[]; cta: NavLink }) {
+export default function Header({ links, cta, onSignOut }: { links: NavLink[]; cta?: NavLink; onSignOut?: () => void }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -34,7 +34,7 @@ export default function Header({ links, cta }: { links: NavLink[]; cta: NavLink 
             <Link
               key={l.href}
               href={l.href}
-              aria-current={l.href.startsWith("/") && l.href !== "/" && pathname.startsWith(l.href.split("#")[0]) ? "page" : undefined}
+              aria-current={(l.current ?? (l.href.startsWith("/") && l.href !== "/" && pathname.startsWith(l.href.split("#")[0]))) ? "page" : undefined}
               onClick={() => setOpen(false)}
             >
               {l.label}
@@ -44,10 +44,22 @@ export default function Header({ links, cta }: { links: NavLink[]; cta: NavLink 
           <Link href="/admin" aria-current={pathname.startsWith("/admin") ? "page" : undefined} onClick={() => setOpen(false)}>
             Admin
           </Link>
-          {cta.label && cta.href && (
+          {cta?.label && cta.href && (
             <Link href={cta.href} className="btn btn--saffron" onClick={() => setOpen(false)}>
               {cta.label}
             </Link>
+          )}
+          {onSignOut && (
+            <button
+              type="button"
+              className="btn btn--outline"
+              onClick={() => {
+                setOpen(false);
+                onSignOut();
+              }}
+            >
+              Log out
+            </button>
           )}
         </div>
       </nav>

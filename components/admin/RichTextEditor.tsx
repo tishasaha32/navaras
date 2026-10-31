@@ -1,21 +1,19 @@
 "use client";
 
 import Highlight from "@tiptap/extension-highlight";
-import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import { TableKit } from "@tiptap/extension-table";
 import TextAlign from "@tiptap/extension-text-align";
 import { Color, TextStyle } from "@tiptap/extension-text-style";
-import Youtube from "@tiptap/extension-youtube";
 import { CharacterCount } from "@tiptap/extensions";
-import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
+import { EditorContent, findParentNode, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useRef, useState, type ReactNode } from "react";
 import type { ActionResult } from "@/app/admin/actions";
-import { MAX_AUDIO_MB } from "@/lib/content/hub";
-import { Audio, Column, Columns, LayoutBox } from "./RichTextBlocks";
+import { MAX_AUDIO_MB, MAX_VIDEO_MB } from "@/lib/content/hub";
+import { Audio, CAROUSEL_RATIOS, Carousel, CarouselSlide, Column, Columns, LayoutBox, MEDIA_RATIOS, ResizableImage, ResizableYoutube, Video } from "./RichTextBlocks";
 
 type Props = {
   id: string;
@@ -28,7 +26,15 @@ type Props = {
   onPickImage?: () => Promise<string | null>;
   /** Stores an audio file; the toolbar shows the audio button only when this is set. */
   onUploadAudio?: (form: FormData) => Promise<ActionResult>;
+  /** Stores a video file; the toolbar shows the upload button only when this is set. */
+  onUploadVideo?: (form: FormData) => Promise<ActionResult>;
 };
+
+const MEDIA_ALIGNMENTS = [
+  { value: "left", label: "Left" },
+  { value: "center", label: "Centre" },
+  { value: "right", label: "Right" },
+];
 
 /** Brand colours offered for text (kept in step with the sanitiser's allow-list). */
 export const TEXT_COLOURS = [
@@ -43,10 +49,10 @@ export const TEXT_COLOURS = [
 /**
  * Rich editor for course content (Natyashastra Hub lessons): headings, formatting,
  * colour and highlight, alignment, lists, quotes, links, images from the library,
- * audio, YouTube videos, tables, two-column and bordered blocks. Output is sanitised on
- * save (lib/content/sanitize.ts).
+ * audio, uploaded and YouTube videos, tables, two-column and bordered blocks, and carousels
+ * that can hold any of those. Output is sanitised on save (lib/content/sanitize.ts).
  */
-export default function RichTextEditor({ id, value, onChange, placeholder, invalid, describedBy, onPickImage, onUploadAudio }: Props) {
+export default function RichTextEditor({ id, value, onChange, placeholder, invalid, describedBy, onPickImage, onUploadAudio, onUploadVideo }: Props) {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -68,13 +74,16 @@ export default function RichTextEditor({ id, value, onChange, placeholder, inval
       Subscript,
       Superscript,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
-      Image.configure({ HTMLAttributes: { loading: "lazy" } }),
-      Youtube.configure({ nocookie: true, modestBranding: true, width: 640, height: 360 }),
+      ResizableImage.configure({ HTMLAttributes: { loading: "lazy" } }),
+      ResizableYoutube.configure({ nocookie: true, modestBranding: true, width: 640, height: 360 }),
       TableKit.configure({ table: { resizable: false } }),
       Audio,
+      Video,
       Column,
       Columns,
       LayoutBox,
+      Carousel,
+      CarouselSlide,
       CharacterCount,
     ],
     content: value,
@@ -93,42 +102,51 @@ export default function RichTextEditor({ id, value, onChange, placeholder, inval
 
   return (
     <div className={`rte${invalid ? " rte--invalid" : ""}`}>
-      {editor ? <Toolbar editor={editor} onPickImage={onPickImage} onUploadAudio={onUploadAudio} /> : <div className="rte__toolbar" aria-hidden="true" />}
+      {editor ? <Toolbar editor={editor} onPickImage={onPickImage} onUploadAudio={onUploadAudio} onUploadVideo={onUploadVideo} /> : <div className="rte__toolbar" aria-hidden="true" />}
       <EditorContent editor={editor} />
       {editor && <Footer editor={editor} />}
     </div>
   );
 }
 
-function Toolbar({ editor, onPickImage, onUploadAudio }: { editor: Editor } & Pick<Props, "onPickImage" | "onUploadAudio">) {
-  const audioInput = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [audioError, setAudioError] = useState<string | null>(null);
+function Toolbar({ editor, onPickImage, onUploadAudio, onUploadVideo }: { editor: Editor } & Pick<Props, "onPickImage" | "onUploadAudio" | "onUploadVideo">) {
+  const [uploading, setUploading] = useState<"audio" | "video" | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const s = useEditorState({
     editor,
-    selector: ({ editor: e }) => ({
-      block: e.isActive("heading", { level: 2 }) ? "h2" : e.isActive("heading", { level: 3 }) ? "h3" : e.isActive("heading", { level: 4 }) ? "h4" : "p",
-      bold: e.isActive("bold"),
-      italic: e.isActive("italic"),
-      underline: e.isActive("underline"),
-      strike: e.isActive("strike"),
-      highlight: e.isActive("highlight"),
-      sub: e.isActive("subscript"),
-      sup: e.isActive("superscript"),
-      color: (e.getAttributes("textStyle").color as string | undefined) ?? "",
-      left: e.isActive({ textAlign: "left" }),
-      center: e.isActive({ textAlign: "center" }),
-      right: e.isActive({ textAlign: "right" }),
-      justify: e.isActive({ textAlign: "justify" }),
-      bullet: e.isActive("bulletList"),
-      ordered: e.isActive("orderedList"),
-      quote: e.isActive("blockquote"),
-      link: e.isActive("link"),
-      table: e.isActive("table"),
-      layout: e.isActive("layoutColumns") ? "2 columns" : e.isActive("layoutBox") ? "Bordered box" : "",
-      canUndo: e.can().undo(),
-      canRedo: e.can().redo(),
-    }),
+    selector: ({ editor: e }) => {
+      const carousel = findParentNode((n) => n.type.name === "carousel")(e.state.selection)?.node;
+      const media = ["image", "video", "youtube"].find((type) => e.isActive(type)) ?? "";
+      return {
+        block: e.isActive("heading", { level: 2 }) ? "h2" : e.isActive("heading", { level: 3 }) ? "h3" : e.isActive("heading", { level: 4 }) ? "h4" : "p",
+        bold: e.isActive("bold"),
+        italic: e.isActive("italic"),
+        underline: e.isActive("underline"),
+        strike: e.isActive("strike"),
+        highlight: e.isActive("highlight"),
+        sub: e.isActive("subscript"),
+        sup: e.isActive("superscript"),
+        color: (e.getAttributes("textStyle").color as string | undefined) ?? "",
+        left: e.isActive({ textAlign: "left" }),
+        center: e.isActive({ textAlign: "center" }),
+        right: e.isActive({ textAlign: "right" }),
+        justify: e.isActive({ textAlign: "justify" }),
+        bullet: e.isActive("bulletList"),
+        ordered: e.isActive("orderedList"),
+        quote: e.isActive("blockquote"),
+        link: e.isActive("link"),
+        table: e.isActive("table"),
+        layout: e.isActive("layoutColumns") ? "2 columns" : e.isActive("layoutBox") ? "Bordered box" : "",
+        slides: carousel?.childCount ?? 0,
+        ratio: carousel?.attrs.ratio as string | undefined,
+        media,
+        mediaAlign: media ? (e.getAttributes(media).align as string) : "",
+        mediaSize: media ? (e.getAttributes(media).size as string | null) : null,
+        mediaRatio: media ? (e.getAttributes(media).ratio as string | null) : null,
+        canUndo: e.can().undo(),
+        canRedo: e.can().redo(),
+      };
+    },
   });
 
   const chain = () => editor.chain().focus();
@@ -154,22 +172,23 @@ function Toolbar({ editor, onPickImage, onUploadAudio }: { editor: Editor } & Pi
     chain().setImage({ src, alt }).run();
   };
 
-  const addAudio = async (file: File) => {
-    setAudioError(null);
-    if (file.size > MAX_AUDIO_MB * 1024 * 1024) return setAudioError(`Audio must be ${MAX_AUDIO_MB} MB or smaller.`);
-    const title = window.prompt("Name this audio for people using screen readers", file.name.replace(/\.[^.]+$/, ""));
+  const addMedia = async (kind: "audio" | "video", file: File) => {
+    const [maxMb, upload] = kind === "audio" ? [MAX_AUDIO_MB, onUploadAudio!] : [MAX_VIDEO_MB, onUploadVideo!];
+    setUploadError(null);
+    if (file.size > maxMb * 1024 * 1024) return setUploadError(`The ${kind} must be ${maxMb} MB or smaller.`);
+    const title = window.prompt(`Name this ${kind} for people using screen readers`, file.name.replace(/\.[^.]+$/, ""));
     if (title === null) return;
     const form = new FormData();
     form.append("file", file);
-    setUploading(true);
+    setUploading(kind);
     try {
-      const res = await onUploadAudio!(form);
-      if (!res.ok) setAudioError(res.error);
-      else if (res.url && !editor.isDestroyed) chain().setAudio({ src: res.url, title: title.trim() }).run();
+      const res = await upload(form);
+      if (!res.ok) setUploadError(res.error);
+      else if (res.url && !editor.isDestroyed) chain().setMedia(kind, { src: res.url, title: title.trim() }).run();
     } catch {
-      setAudioError("The upload didn’t finish. Check your connection and try again.");
+      setUploadError("The upload didn’t finish. Check your connection and try again.");
     } finally {
-      setUploading(false);
+      setUploading(null);
     }
   };
 
@@ -271,23 +290,14 @@ function Toolbar({ editor, onPickImage, onUploadAudio }: { editor: Editor } & Pi
         </Btn>
       )}
       {onUploadAudio && (
-        <>
-          <Btn label="Audio" disabled={uploading} onClick={() => audioInput.current?.click()}>
-            <Icon d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-          </Btn>
-          <input
-            ref={audioInput}
-            type="file"
-            accept=".mp3,.m4a,.wav,audio/mpeg,audio/mp4,audio/x-m4a,audio/wav"
-            aria-label="Audio file"
-            hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void addAudio(f);
-              e.target.value = "";
-            }}
-          />
-        </>
+        <UploadBtn label="Audio" accept=".mp3,.m4a,.wav,audio/mpeg,audio/mp4,audio/x-m4a,audio/wav" disabled={Boolean(uploading)} onFile={(f) => void addMedia("audio", f)}>
+          <Icon d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+        </UploadBtn>
+      )}
+      {onUploadVideo && (
+        <UploadBtn label="Upload video" accept=".mp4,.webm,video/mp4,video/webm" disabled={Boolean(uploading)} onFile={(f) => void addMedia("video", f)}>
+          <Icon d="M4 5h16v14H4zM4 9h16M4 15h16M9 5v4M15 5v4M9 15v4M15 15v4" />
+        </UploadBtn>
       )}
       <Btn label="YouTube video" onClick={addVideo}>
         <Icon d="M3 7.5a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3zM10 9l5 3-5 3z" />
@@ -300,6 +310,9 @@ function Toolbar({ editor, onPickImage, onUploadAudio }: { editor: Editor } & Pi
       </Btn>
       <Btn label="One column with border" active={s.layout === "Bordered box"} disabled={Boolean(s.layout)} onClick={() => chain().wrapIn("layoutBox").run()}>
         <Icon d="M4 5h16v14H4zM8 10h8M8 14h8" />
+      </Btn>
+      <Btn label="Carousel" active={s.slides > 0} disabled={s.slides > 0 || Boolean(s.layout) || s.table} onClick={() => chain().insertCarousel().run()}>
+        <Icon d="M7 5h10v14H7zM3 8v8M21 8v8" />
       </Btn>
       <Btn label="Clear formatting" onClick={() => chain().unsetAllMarks().clearNodes().run()}>
         <Icon d="M6 6h12M12 6l-3 12M4 20 20 4" />
@@ -327,15 +340,53 @@ function Toolbar({ editor, onPickImage, onUploadAudio }: { editor: Editor } & Pi
         </div>
       )}
 
-      {uploading && (
-        <div className="rte__table-tools" role="status">
-          Uploading audio…
+      {s.media && (
+        <div className="rte__table-tools" role="group" aria-label={s.media === "image" ? "Image" : "Video"}>
+          <span>{s.media === "image" ? "Image:" : "Video:"}</span>
+          {MEDIA_ALIGNMENTS.map(({ value, label }) => (
+            <TextBtn key={value} active={s.mediaAlign === value} onClick={() => chain().updateAttributes(s.media, { align: value }).run()}>
+              {label}
+            </TextBtn>
+          ))}
+          {s.mediaSize && <TextBtn onClick={() => chain().updateAttributes(s.media, { size: null }).run()}>Reset size</TextBtn>}
+          <span>Shape:</span>
+          <TextBtn active={!s.mediaRatio} onClick={() => chain().updateAttributes(s.media, { ratio: null }).run()}>
+            Original
+          </TextBtn>
+          {MEDIA_RATIOS.map((ratio) => (
+            <TextBtn key={ratio} active={s.mediaRatio === ratio} onClick={() => chain().updateAttributes(s.media, { ratio }).run()}>
+              {ratio}
+            </TextBtn>
+          ))}
         </div>
       )}
-      {audioError && (
+
+      {s.slides > 0 && (
+        <div className="rte__table-tools" role="group" aria-label="Carousel">
+          <span>Carousel:</span>
+          {CAROUSEL_RATIOS.map((ratio) => (
+            <TextBtn key={ratio} active={s.ratio === ratio} onClick={() => chain().updateAttributes("carousel", { ratio }).run()}>
+              {ratio}
+            </TextBtn>
+          ))}
+          <TextBtn onClick={() => chain().addSlide().run()}>+ Slide</TextBtn>
+          {s.slides > 1 && <TextBtn onClick={() => chain().deleteNode("carouselSlide").run()}>− Slide</TextBtn>}
+          <TextBtn onClick={() => chain().unsetCarousel().run()}>Remove carousel, keep content</TextBtn>
+          <TextBtn danger onClick={() => chain().deleteNode("carousel").run()}>
+            Delete carousel
+          </TextBtn>
+        </div>
+      )}
+
+      {uploading && (
+        <div className="rte__table-tools" role="status">
+          Uploading {uploading}…
+        </div>
+      )}
+      {uploadError && (
         <div className="rte__table-tools" role="alert" style={{ color: "var(--a-danger)" }}>
-          {audioError}
-          <TextBtn onClick={() => setAudioError(null)}>Dismiss</TextBtn>
+          {uploadError}
+          <TextBtn onClick={() => setUploadError(null)}>Dismiss</TextBtn>
         </div>
       )}
     </div>
@@ -385,11 +436,47 @@ function Btn({
   );
 }
 
-function TextBtn({ onClick, danger, children }: { onClick: () => void; danger?: boolean; children: ReactNode }) {
+function UploadBtn({
+  label,
+  accept,
+  disabled,
+  onFile,
+  children,
+}: {
+  label: string;
+  accept: string;
+  disabled: boolean;
+  onFile: (file: File) => void;
+  children: ReactNode;
+}) {
+  const input = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <Btn label={label} disabled={disabled} onClick={() => input.current?.click()}>
+        {children}
+      </Btn>
+      <input
+        ref={input}
+        type="file"
+        accept={accept}
+        aria-label={`${label} file`}
+        hidden
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onFile(f);
+          e.target.value = "";
+        }}
+      />
+    </>
+  );
+}
+
+function TextBtn({ onClick, active, danger, children }: { onClick: () => void; active?: boolean; danger?: boolean; children: ReactNode }) {
   return (
     <button
       type="button"
       className="rte__text-btn"
+      aria-pressed={active}
       style={danger ? { color: "var(--a-danger)" } : undefined}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}

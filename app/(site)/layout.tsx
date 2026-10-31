@@ -1,13 +1,11 @@
 import { draftMode } from "next/headers";
 import FirebaseAnalytics from "@/components/FirebaseAnalytics";
 import Footer from "@/components/Footer";
-import Header from "@/components/Header";
 import { section } from "@/lib/content/pages";
 import { getLive } from "@/lib/content/store";
 
 export default async function SiteLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { pages, hub } = await getLive();
-  const menu = section(pages.landing, "menu");
   const footer = section(pages.landing, "footer");
   const preview = (await draftMode()).isEnabled;
   return (
@@ -21,11 +19,7 @@ export default async function SiteLayout({ children }: Readonly<{ children: Reac
           <a href="/admin/preview/exit">Exit preview</a>
         </div>
       )}
-      <Header
-        links={menu.list("links").filter((l) => l.label && l.href).map((l) => ({ label: l.label, href: l.href }))}
-        cta={{ label: menu.text("cta"), href: menu.text("ctaHref") }}
-      />
-      <main>{children}</main>
+      {children}
       <Footer
         contact={{
           tagline: footer.text("tagline"),

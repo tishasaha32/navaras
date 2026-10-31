@@ -890,15 +890,6 @@ button {
   border-radius: 999px;
   transition: width 0.3s ease;
 }
-.video-frame {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  border-radius: 22px;
-  overflow: hidden;
-  background: var(--maroon);
-  border: 1px solid var(--gold);
-  box-shadow: 0 0 0 6px var(--ivory), 0 0 0 7px var(--line-gold);
-}
 
 .reader-actions {
   display: flex;
@@ -1293,17 +1284,426 @@ button {
   display: block;
   max-width: 100%;
   height: auto;
-  margin: 1em 0;
+  margin: 1em auto;
   border-radius: 16px;
   border: 1px solid var(--line-gold);
+}
+.rich img[data-align="left"],
+.rich iframe[data-align="left"],
+.video-player[data-align="left"] {
+  margin-left: 0;
+  margin-right: auto;
+}
+.rich img[data-align="right"],
+.rich iframe[data-align="right"],
+.video-player[data-align="right"] {
+  margin-left: auto;
+  margin-right: 0;
+}
+/* A chosen shape crops to fit. Without one, pictures and videos keep their own. */
+.rich img[data-ratio],
+.video-player[data-ratio] video {
+  object-fit: cover;
+}
+.rich img[data-ratio="16:9"],
+.rich iframe[data-ratio="16:9"] {
+  aspect-ratio: 16 / 9;
+}
+.rich img[data-ratio="4:3"],
+.rich iframe[data-ratio="4:3"] {
+  aspect-ratio: 4 / 3;
+}
+.rich img[data-ratio="1:1"],
+.rich iframe[data-ratio="1:1"] {
+  aspect-ratio: 1;
+}
+.rich img[data-ratio="9:16"],
+.rich iframe[data-ratio="9:16"] {
+  aspect-ratio: 9 / 16;
 }
 .rich [data-youtube-video] {
   margin: 1em 0;
 }
-.rich audio {
+.audio-player {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 1em 0;
+  padding: 12px 16px 12px 12px;
+  border: 1.5px solid var(--gold);
+  border-radius: 16px;
+  background: var(--ivory);
+}
+.audio-player__toggle {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--rose);
+  color: #fff;
+  cursor: pointer;
+}
+.audio-player__toggle:hover {
+  background: var(--rose-deep);
+}
+.audio-player__main {
+  flex: 1;
+  min-width: 0;
+}
+.audio-player__title {
+  display: block;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.audio-player__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 12px;
+}
+/* --shape is the video's own width ÷ height, set once the file's details load. */
+.video-player {
+  width: var(--size, 100%);
+  display: flex;
+  flex-direction: column;
+  /* Tall videos stay small enough to see whole on screen, and narrow ones keep room for their controls. */
+  min-width: min(260px, 100%);
+  max-width: calc((100vh - 200px) * var(--shape, 16 / 9));
+  margin: 1em auto;
+  overflow: hidden;
+  border: 1.5px solid var(--gold);
+  border-radius: 16px;
+  background: var(--maroon);
+}
+.video-player:fullscreen {
+  max-width: none;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+.video-player__screen {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: var(--shape, 16 / 9);
+  background: var(--maroon-deep);
+}
+.video-player:fullscreen .video-player__screen {
+  aspect-ratio: auto;
+}
+.video-player__screen video {
   display: block;
   width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.video-player__big {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--gold-soft);
+  border-radius: 50%;
+  background: var(--rose);
+  color: #fff;
+  cursor: pointer;
+}
+.video-player__big:hover {
+  background: var(--rose-deep);
+}
+.video-player__bar {
+  --track: rgba(255, 251, 243, 0.28);
+  padding: 8px 10px 6px;
+  color: var(--ivory);
+}
+.video-player__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.video-player__btn {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.video-player__btn:hover {
+  background: rgba(255, 251, 243, 0.14);
+}
+.media-seek {
+  --pct: 0%;
+  display: block;
+  flex: 1 1 140px;
+  width: 100%;
+  min-width: 0;
+  height: 22px;
+  margin: 0;
+  appearance: none;
+  background: none;
+  cursor: pointer;
+}
+.media-seek:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.media-seek::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--saffron) var(--pct), var(--track, var(--sand-2)) var(--pct));
+}
+.media-seek::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--saffron) var(--pct), var(--track, var(--sand-2)) var(--pct));
+}
+.media-seek::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  appearance: none;
+  border: 2px solid var(--ivory);
+  border-radius: 50%;
+  background: var(--gold);
+}
+.media-seek::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--ivory);
+  border-radius: 50%;
+  background: var(--gold);
+}
+.media-time {
+  flex: none;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+.carousel {
   margin: 1em 0;
+  overflow: hidden;
+  border: 1.5px solid var(--gold);
+  border-radius: 16px;
+}
+/* Square at full lesson width would fill the screen, so it stays smaller and centred. */
+.carousel[data-ratio="1:1"] {
+  max-width: 520px;
+  margin-inline: auto;
+}
+.carousel__track {
+  display: flex;
+  aspect-ratio: 16 / 9;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.carousel[data-ratio="1:1"] .carousel__track {
+  aspect-ratio: 1;
+}
+.carousel__track::-webkit-scrollbar {
+  display: none;
+}
+.carousel__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  padding: 18px 20px;
+  overflow-wrap: anywhere;
+  /* The slide keeps its shape, so content taller than it scrolls inside. */
+  overflow-y: auto;
+  scroll-snap-align: start;
+  /* Lets the pictures and videos below be sized from the slide's height (cqh). */
+  container-type: size;
+}
+/* Wide enough for two columns in a square carousel too. */
+.rich .carousel__slide [data-layout="columns"] {
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+}
+/*
+ * A picture or video alone in its column stays in view, centred in the slide, while the column beside
+ * it scrolls. Both keep their own shape and always fit the slide, the video with its controls.
+ */
+.carousel__slide [data-layout="column"]:has(> img:only-child, > .video-player:only-child) {
+  position: sticky;
+  top: 0; /* Measured from inside the slide's padding. */
+  height: 100cqh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.carousel__slide [data-layout="column"] > img:only-child,
+.carousel__slide [data-layout="column"] > .video-player:only-child {
+  flex: none;
+  margin: 0;
+}
+.carousel__slide [data-layout="column"] > [data-align="left"]:only-child {
+  margin-right: auto;
+}
+.carousel__slide [data-layout="column"] > [data-align="right"]:only-child {
+  margin-left: auto;
+}
+.carousel__slide [data-layout="column"] > img:only-child {
+  max-height: 100%;
+}
+.carousel__slide [data-layout="column"] > img:not([data-ratio]):only-child {
+  object-fit: contain;
+}
+.carousel__slide [data-layout="column"] > .video-player:only-child {
+  width: min(var(--size, 100%), calc((100cqh - 80px) * var(--shape, 16 / 9)));
+}
+/* Stacked columns can't fit a fixed shape on a phone, so these carousels grow to fit instead of scrolling inside. */
+@media (max-width: 540px) {
+  .carousel:has([data-layout="columns"]) .carousel__track {
+    aspect-ratio: auto;
+  }
+  .carousel__slide:has([data-layout="columns"]) {
+    overflow-y: visible;
+    container-type: normal;
+  }
+  .carousel__slide [data-layout="column"]:has(> img:only-child, > .video-player:only-child) {
+    position: static;
+    height: auto;
+    display: block;
+  }
+  .carousel__slide [data-layout="column"] > img:only-child,
+  .carousel__slide [data-layout="column"] > .video-player:only-child {
+    width: 100%;
+    max-height: none;
+    margin: 0 auto 1em;
+  }
+}
+/* A slide holding one picture or video is filled by it. */
+.carousel__slide:has(> img:only-child, > .video-player:only-child, > [data-youtube-video]:only-child) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.carousel__slide > img:only-child {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  object-fit: contain;
+  border: none;
+  border-radius: 0;
+}
+/* A chosen shape or size makes it smaller than the slide, so it's centred there instead. */
+.carousel__slide > img[data-ratio]:only-child {
+  width: auto;
+  object-fit: cover;
+}
+/* The phone layout above lets the slide grow, so a percentage height would stretch with it. */
+@media (max-width: 540px) {
+  .carousel:has([data-layout="columns"]) .carousel__slide > img[data-ratio]:only-child {
+    width: 100%;
+    height: auto;
+  }
+}
+.carousel__slide > .video-player:only-child {
+  flex: none;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+.carousel__slide > .video-player:only-child:not([data-ratio]) .video-player__screen {
+  aspect-ratio: auto;
+}
+.carousel__slide > .video-player[data-ratio]:only-child {
+  width: min(var(--size, 100%), calc((100cqh - 80px) * var(--shape, 16 / 9)));
+  height: auto;
+}
+.carousel__slide > [data-youtube-video]:only-child {
+  flex: none;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+.carousel__slide > [data-youtube-video]:only-child iframe:not([data-ratio]) {
+  height: 100%;
+  aspect-ratio: auto;
+  border: none;
+  border-radius: 0;
+}
+.carousel__slide > [data-youtube-video]:only-child iframe[data-ratio] {
+  width: auto;
+  height: 100%;
+  margin-inline: auto;
+}
+.rich .carousel__slide > :first-child {
+  margin-top: 0;
+}
+.rich .carousel__slide > :last-child {
+  margin-bottom: 0;
+}
+.carousel__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+}
+.carousel__arrow {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  background: var(--ivory);
+  color: var(--maroon);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.carousel__arrow:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.carousel__dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-width: 0;
+}
+.carousel__dot {
+  width: 24px;
+  height: 24px;
+  padding: 7px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.carousel__dot::before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line-gold);
+}
+.carousel__dot[aria-current]::before {
+  background: var(--rose);
 }
 /* Two columns where they fit, otherwise stacked: this follows the width of the lesson, not the screen. */
 .rich [data-layout="columns"] {
@@ -1336,8 +1736,9 @@ button {
   display: block;
   width: 100%;
   height: auto;
+  margin-inline: auto;
   aspect-ratio: 16 / 9;
-  border: 0;
+  border: 1.5px solid var(--gold);
   border-radius: 16px;
   background: var(--maroon);
 }
@@ -1447,12 +1848,6 @@ button {
   justify-content: space-between;
   gap: 12px;
 }
-.hub-bar__nav {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
 .hub-bar__brand {
   display: inline-flex;
   align-items: baseline;
@@ -1466,25 +1861,6 @@ button {
   font-weight: 500;
   color: var(--rose);
 }
-.hub-tab {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 16px;
-  border-radius: 999px;
-  color: var(--ink);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 14px;
-}
-.hub-tab:hover {
-  color: var(--ink);
-  background: rgba(255, 251, 243, 0.7);
-}
-.hub-tab[aria-current="page"] {
-  background: var(--maroon);
-  color: var(--ivory);
-}
 .hub-bar__progress {
   display: inline-flex;
   flex-wrap: wrap;
@@ -1492,17 +1868,6 @@ button {
   gap: 12px;
   font-size: 14px;
   font-weight: 600;
-}
-.hub-bar__signout {
-  min-height: 36px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1.5px solid var(--line-input);
-  background: transparent;
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
 }
 .count-pill {
   padding: 6px 16px;
@@ -1654,15 +2019,16 @@ button {
   flex-direction: column;
   gap: 20px;
 }
-@media (min-width: 1000px) {
+/* 1040px is where the sidebar and lesson fit side by side; a sticky sidebar above the lesson would cover it. */
+@media (min-width: 1040px) {
   .reader-aside {
     position: sticky;
-    top: 16px;
-    max-height: calc(100vh - 32px);
+    top: 99px; /* Below the sticky site header. */
+    max-height: calc(100vh - 115px);
     overflow-y: auto;
   }
 }
-@media (max-width: 999px) {
+@media (max-width: 1039px) {
   .reader-aside {
     order: 2;
   }
@@ -1730,6 +2096,14 @@ button {
   font-size: 12px;
   font-weight: 700;
   color: var(--muted);
+}
+.reader-thumb {
+  flex: none;
+  width: 56px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--maroon);
 }
 .reader-tag {
   flex: none;

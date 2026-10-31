@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
 import { revalidatePath } from "next/cache";
-import { MAX_AUDIO_MB, type Hub } from "@/lib/content/hub";
+import { MAX_AUDIO_MB, MAX_VIDEO_MB, type Hub } from "@/lib/content/hub";
 import { PAGE_SCHEMAS, type PageKey } from "@/lib/content/pages";
 import { UPLOAD_DIR, publish, saveDraft } from "@/lib/content/store";
 import { parseHub, parsePageDoc } from "@/lib/content/validate";
@@ -51,6 +51,14 @@ export async function saveHub(data: unknown, mode: "draft" | "publish"): Promise
 
 const MAX_UPLOAD = 5 * 1024 * 1024;
 const MAX_AUDIO_UPLOAD = MAX_AUDIO_MB * 1024 * 1024;
+const MAX_VIDEO_UPLOAD = MAX_VIDEO_MB * 1024 * 1024;
+
+async function store(buf: Buffer, ext: string): Promise<ActionResult> {
+  const name = `${randomUUID()}.${ext}`;
+  await fs.mkdir(UPLOAD_DIR, { recursive: true });
+  await fs.writeFile(path.join(UPLOAD_DIR, name), buf);
+  return { ok: true, url: `/uploads/${name}` };
+}
 
 function sniffImage(buf: Buffer): "png" | "jpg" | "webp" | "gif" | null {
   if (buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "png";
@@ -68,10 +76,7 @@ export async function uploadImage(form: FormData): Promise<ActionResult> {
   const buf = Buffer.from(await file.arrayBuffer());
   const ext = sniffImage(buf);
   if (!ext) return { ok: false, error: "Upload a PNG, JPEG, WebP or GIF image." };
-  const name = `${randomUUID()}.${ext}`;
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  await fs.writeFile(path.join(UPLOAD_DIR, name), buf);
-  return { ok: true, url: `/uploads/${name}` };
+  return store(buf, ext);
 }
 
 /** Formats every browser plays, iPhones included: the extension comes from the bytes, never the file name. */
@@ -92,8 +97,23 @@ export async function uploadAudio(form: FormData): Promise<ActionResult> {
   const buf = Buffer.from(await file.arrayBuffer());
   const ext = sniffAudio(buf);
   if (!ext) return { ok: false, error: "Upload an MP3, M4A or WAV file." };
-  const name = `${randomUUID()}.${ext}`;
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  await fs.writeFile(path.join(UPLOAD_DIR, name), buf);
-  return { ok: true, url: `/uploads/${name}` };
+  return store(buf, ext);
+}
+
+/** MP4 plays everywhere and WebM nearly so; MOV is left out because most browsers can't play what phones record in it. */
+function sniffVideo(buf: Buffer): "mp4" | "webm" | null {
+  if (buf.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]))) return "webm";
+  if (buf.subarray(4, 8).toString("ascii") === "ftyp" && /^(isom|iso[2-9]|mp4[12]|avc1|M4V |dash)$/.test(buf.subarray(8, 12).toString("ascii"))) return "mp4";
+  return null;
+}
+
+export async function uploadVideo(form: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  const file = form.get("file");
+  if (!(file instanceof File)) return { ok: false, error: "No file received." };
+  if (file.size > MAX_VIDEO_UPLOAD) return { ok: false, error: `The video must be ${MAX_VIDEO_MB} MB or smaller.` };
+  const buf = Buffer.from(await file.arrayBuffer());
+  const ext = sniffVideo(buf);
+  if (!ext) return { ok: false, error: "Upload an MP4 or WebM video." };
+  return store(buf, ext);
 }

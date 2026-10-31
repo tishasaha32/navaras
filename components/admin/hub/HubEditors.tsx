@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { uploadAudio } from "@/app/admin/actions";
+import { uploadAudio, uploadVideo } from "@/app/admin/actions";
 import { HUB_PATH, QUIZ_TYPES, slugify, type Chapter, type Hub, type HubSection, type Quiz, type Status } from "@/lib/content/hub";
 import RichTextEditor from "../RichTextEditor";
 import { ImageField, usePickImage } from "../ImageLibrary";
@@ -279,7 +279,7 @@ export function ChapterEditor({
             Page address: {HUB_PATH}/{slugify(s.title)}/{slugify(c.title)}
           </span>
         </label>
-        <ImageField label="Thumbnail" value={c.thumb} hint="Shown at the top of the chapter. JPG or PNG, at least 1200px wide" removable onChange={(v) => set("thumb", v)} />
+        <ImageField label="Thumbnail" value={c.thumb} hint="Shown beside the chapter in the chapter list. JPG or PNG, at least 400px wide" removable onChange={(v) => set("thumb", v)} />
         <div className="adm-field">
           <label htmlFor={`body-${c.id}`}>Lesson content</label>
           <RichTextEditor
@@ -289,6 +289,7 @@ export function ChapterEditor({
             onChange={(html) => set("body", html)}
             onPickImage={() => pick()}
             onUploadAudio={uploadAudio}
+            onUploadVideo={uploadVideo}
           />
         </div>
       </div>

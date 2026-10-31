@@ -10,6 +10,9 @@ export const UPLOAD_NAME = /^[a-f0-9-]{36}\.(png|jpe?g|webp|gif)$/;
 /** Audio uploads. Kept apart from images so they never appear in the image library. */
 export const AUDIO_NAME = /^[a-f0-9-]{36}\.(mp3|m4a|wav)$/;
 
+/** Video uploads, kept apart for the same reason. */
+export const VIDEO_NAME = /^[a-f0-9-]{36}\.(mp4|webm)$/;
+
 /** Images the admin can pick from: built-in illustrations plus uploads. */
 export async function listImages(): Promise<string[]> {
   const builtIn = (await fs.readdir(path.join(process.cwd(), "public/images")))
@@ -36,4 +39,8 @@ export function isAllowedImagePath(src: string): boolean {
 
 export function isAllowedAudioPath(src: string): boolean {
   return src.startsWith("/uploads/") && AUDIO_NAME.test(src.slice("/uploads/".length));
+}
+
+export function isAllowedVideoPath(src: string): boolean {
+  return src.startsWith("/uploads/") && VIDEO_NAME.test(src.slice("/uploads/".length));
 }

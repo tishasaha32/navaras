@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 
 export default async function HubPage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   const [hub, { category }] = await Promise.all([getPublicHub(), searchParams]);
-  return <HubLibrary hub={summarize(hub)} initialCategory={category} />;
+  return <HubLibrary key={category} hub={summarize(hub)} initialCategory={category} />;
 }

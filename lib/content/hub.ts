@@ -54,8 +54,10 @@ export const QUIZ_TYPES = [
   "Flashcards",
 ] as const;
 
-/** Largest audio upload. `serverActions.bodySizeLimit` in next.config.ts must stay just above this. */
 export const MAX_AUDIO_MB = 25;
+
+/** Largest upload of any kind. `serverActions.bodySizeLimit` in next.config.ts must stay just above this. */
+export const MAX_VIDEO_MB = 100;
 
 /** Slugs the hub routes use for their own pages. */
 export const RESERVED_SLUGS = new Set(["login", "my-learning", "dashboard"]);

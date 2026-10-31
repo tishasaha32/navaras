@@ -1,0 +1,28 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import Header from "@/components/Header";
+import { HUB_PATH, type Category } from "@/lib/content/hub";
+import { loginHref } from "./HubBar";
+import { useLearner } from "./LearnerProvider";
+
+/** The site header with the Hub's own links, for everyone inside the Hub. */
+export default function HubHeader({ categories }: { categories: Category[] }) {
+  const pathname = usePathname();
+  const { ready, learner, signOut } = useLearner();
+  const onMyLearning = pathname.startsWith(`${HUB_PATH}/my-learning`);
+  const onLogin = pathname === `${HUB_PATH}/login`;
+
+  return (
+    <Header
+      links={[
+        { href: HUB_PATH, label: "Library", current: !onMyLearning && !onLogin },
+        ...categories.map((c) => ({ href: `${HUB_PATH}?category=${encodeURIComponent(c.id)}#library`, label: c.name, current: false })),
+        ...(learner ? [{ href: `${HUB_PATH}/my-learning`, label: "My learning", current: onMyLearning }] : []),
+        { href: "/", label: "Main site" },
+      ]}
+      cta={ready && !learner && !onLogin ? { href: loginHref(pathname), label: "Log in" } : undefined}
+      onSignOut={learner ? () => void signOut() : undefined}
+    />
+  );
+}

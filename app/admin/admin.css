@@ -1147,6 +1147,11 @@ textarea.adm-input {
 .rte__text-btn:hover {
   background: var(--a-sand);
 }
+.rte__text-btn[aria-pressed="true"] {
+  border-color: var(--a-accent);
+  background: var(--a-accent);
+  color: #fff;
+}
 .rte__footer {
   padding: 6px 14px;
   border-top: 1px solid var(--a-line);
@@ -1158,17 +1163,112 @@ textarea.adm-input {
 .rte__content {
   min-height: 280px;
 }
-.rte__content img.ProseMirror-selectednode,
-.rte__content audio.ProseMirror-selectednode,
-.rte__content [data-youtube-video].ProseMirror-selectednode {
+.rte__content .node-audio.ProseMirror-selectednode,
+.rte__content .node-image.ProseMirror-selectednode .rte-image,
+.rte__content .node-video.ProseMirror-selectednode .video-player,
+.rte__content .node-youtube.ProseMirror-selectednode .rte-image {
   outline: 3px solid var(--a-accent);
 }
+/* The saved page's picture is the <img> itself; here it needs a box to hold the grips. */
+.rte-image {
+  position: relative;
+  width: var(--size, fit-content);
+  max-width: 100%;
+  margin: 1em auto;
+  border-radius: 16px;
+}
+.rte-image[data-align="left"] {
+  margin-left: 0;
+}
+.rte-image[data-align="right"] {
+  margin-right: 0;
+}
+.rte-image--embed {
+  width: var(--size, 100%);
+}
+.rte__content .rte-image img,
+.rte__content .rte-image iframe {
+  width: 100%;
+  margin: 0;
+}
+/* A click on the embedded player would never reach the editor, so it couldn't be selected. */
+.rte__content .rte-image iframe {
+  pointer-events: none;
+}
+.rte__content .video-player {
+  position: relative;
+}
+.rte-handle {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 14px;
+  height: 56px;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--a-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  cursor: ew-resize;
+  opacity: 0;
+  touch-action: none;
+  transition: opacity 0.15s ease;
+}
+.rte-handle--left {
+  left: 6px;
+}
+.rte-handle--right {
+  right: 6px;
+}
+.rte-image:hover .rte-handle,
+.video-player:hover .rte-handle,
+.ProseMirror-selectednode .rte-handle,
+.rte-handle:focus-visible {
+  opacity: 1;
+}
+
 /* Guides so empty columns can be seen and clicked; the public page has none. */
 .rte__content [data-layout="column"] {
   min-height: 72px;
   padding: 10px 12px;
   border: 1px dashed var(--a-input);
   border-radius: 10px;
+}
+/* Every slide stays on show while editing; the public page shows one at a time. */
+.rte__content [data-layout="carousel"] {
+  margin: 1em 0;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+  counter-reset: slide;
+  border: 1.5px solid var(--a-accent);
+  border-radius: 12px;
+}
+.rte__content [data-layout="slide"] {
+  position: relative;
+  min-width: 0;
+  min-height: 96px;
+  padding: 32px 12px 10px;
+  border: 1px dashed var(--a-input);
+  border-radius: 10px;
+  counter-increment: slide;
+}
+.rte__content [data-layout="slide"]::before {
+  content: "Slide " counter(slide);
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--a-muted);
+  pointer-events: none;
+}
+.rte__content [data-layout="slide"] > :first-child {
+  margin-top: 0;
+}
+.rte__content [data-layout="slide"] > :last-child {
+  margin-bottom: 0;
 }
 .rte__content .selectedCell::after {
   content: "";

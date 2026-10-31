@@ -107,14 +107,15 @@ export default function SectionReader({ section: s, view, summary, categoryName,
                   const done = Boolean(learner && progress.read[c.id]);
                   return (
                     <Link key={c.id} href={itemHref(s, c)} className="reader-link" aria-current={chapter?.id === c.id ? "page" : undefined}>
-                      {done ? (
-                        <CheckCircle size={24} />
+                      {c.thumb ? (
+                        <img src={c.thumb} alt="" className="reader-thumb" />
                       ) : (
                         <span aria-hidden="true" className="reader-num">
                           {i + 1}
                         </span>
                       )}
                       <span style={{ flex: 1 }}>{c.title}</span>
+                      {done && <CheckCircle size={24} />}
                     </Link>
                   );
                 })}
@@ -219,12 +220,6 @@ function ChapterView({ section: s, index, nextSection }: { section: HubSection; 
         )}
       </div>
       <h1 style={{ fontSize: "clamp(32px, 3.8vw, 48px)", lineHeight: 1.05 }}>{c.title}</h1>
-
-      {c.thumb && (
-        <figure className="video-frame" style={{ margin: 0 }}>
-          <img src={c.thumb} alt="" className="cover" />
-        </figure>
-      )}
 
       {c.body && <RichText html={c.body} className="lesson" />}
 
