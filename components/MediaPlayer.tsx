@@ -15,12 +15,14 @@ function useMedia<T extends HTMLMediaElement>() {
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [shape, setShape] = useState<number>();
+  const [loading, setLoading] = useState(true);
 
   const readDetails = () => {
     const m = ref.current;
     if (!m) return;
     if (Number.isFinite(m.duration)) setDuration(m.duration);
     if (m instanceof HTMLVideoElement && m.videoHeight) setShape(m.videoWidth / m.videoHeight);
+    if (m.readyState > 0) setLoading(false);
   };
 
   // The file's details can finish loading before React attaches its handlers.
@@ -31,10 +33,15 @@ function useMedia<T extends HTMLMediaElement>() {
     time,
     duration,
     shape,
+    loading,
     media: {
       ref,
       onLoadedMetadata: readDetails,
       onDurationChange: readDetails,
+      onWaiting: () => setLoading(true),
+      onPlaying: () => setLoading(false),
+      onCanPlay: () => setLoading(false),
+      onError: () => setLoading(false),
       onTimeUpdate: (e: React.SyntheticEvent<T>) => setTime(e.currentTarget.currentTime),
       onPlay: () => setPlaying(true),
       onPause: () => setPlaying(false),
@@ -135,10 +142,14 @@ export function VideoPlayer({ src, title, size, align, ratio, children }: VideoP
     >
       <div className="video-player__screen">
         <video src={src} title={title} preload="metadata" playsInline onClick={p.toggle} onVolumeChange={(e) => setMuted(e.currentTarget.muted)} {...p.media} />
-        {!p.playing && (
-          <button type="button" className="video-player__big" aria-label="Play" onClick={p.toggle}>
-            <Glyph d={PLAY} size={34} />
-          </button>
+        {p.loading ? (
+          <span className="video-player__loader" role="status" aria-label="Loading video" />
+        ) : (
+          !p.playing && (
+            <button type="button" className="video-player__big" aria-label="Play" onClick={p.toggle}>
+              <Glyph d={PLAY} size={34} />
+            </button>
+          )
         )}
       </div>
       <div className="video-player__bar">

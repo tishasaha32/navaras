@@ -1132,6 +1132,9 @@ textarea.adm-input {
   margin: 1em auto;
   border-radius: 16px;
 }
+.rte-image:has(img[data-loading]) {
+  min-width: 200px;
+}
 .rte-image[data-align="left"] {
   margin-left: 0;
 }

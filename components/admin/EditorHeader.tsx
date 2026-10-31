@@ -102,6 +102,7 @@ export default function EditorHeader({
         <div className="adm-head__actions">
           <Link
             href={`/admin/preview?path=${encodeURIComponent(path)}`}
+            prefetch={false}
             target="_blank"
             className="adm-btn adm-btn--light"
             title="Opens the site with your saved draft. Save draft first to include recent edits."

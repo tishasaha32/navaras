@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { saveHub } from "@/app/admin/actions";
-import { HUB_PATH, type Hub, type HubSection } from "@/lib/content/hub";
+import { HUB_PATH, itemHref, type Hub, type HubSection } from "@/lib/content/hub";
 import EditorHeader, { useSaveFlow } from "../EditorHeader";
 import { ChevronRightIcon, PlusIcon, QuizIcon } from "../icons";
 import { ImageLibraryProvider } from "../ImageLibrary";
@@ -201,13 +201,21 @@ export default function HubBuilder({ initial, hasDraft, library }: { initial: Hu
   const chapter = sel.k === "chapter" ? section?.chapters.find((c) => c.id === sel.id) : undefined;
   const quiz = sel.k === "quiz" ? section?.quizzes.find((x) => x.id === sel.id) : undefined;
 
+  /** What's being edited, or the section's first page. Anything not saved yet has no address, nor a quiz with no questions. */
+  const previewPath = () => {
+    if (!section?.slug) return HUB_PATH;
+    const onSite = (q: { slug: string; questions: unknown[] }) => q.slug && q.questions.length > 0;
+    const item = [chapter, quiz && onSite(quiz) ? quiz : undefined, ...section.chapters, ...section.quizzes.filter(onSite)].find((x) => x?.slug);
+    return item ? itemHref(section, item) : HUB_PATH;
+  };
+
   return (
     <ImageLibraryProvider library={library}>
       <EditorHeader
         crumb="Admin / Natyashastra Hub"
         title="Natyashastra Hub"
         dev="नाट्यशास्त्र"
-        path={HUB_PATH}
+        path={previewPath()}
         meta={`${counts.sections} sections · ${counts.chapters} chapters · ${counts.quizzes} quizzes · ${counts.drafts} drafts`}
         status={flow.status}
         error={flow.error}

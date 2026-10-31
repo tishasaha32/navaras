@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Eczar, Mukta } from "next/font/google";
+import MediaLoading from "@/components/MediaLoading";
 import "./globals.css";
 
 const eczar = Eczar({
@@ -26,7 +27,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${eczar.variable} ${mukta.variable}`}>
-      <body>{children}</body>
+      <body>
+        <MediaLoading />
+        {children}
+      </body>
     </html>
   );
 }
