@@ -19,7 +19,7 @@ export default function MyLearning({ hub }: { hub: HubSummary }) {
 
   if (!learner) {
     return (
-      <section className="hero-section" style={{ padding: "104px 32px" }}>
+      <section className="hero-section" style={{ padding: "clamp(64px, 10vw, 104px) clamp(16px, 5vw, 32px)" }}>
         <Toran />
         <div className="container section-head" style={{ gap: 18 }}>
           <p className="eyebrow">My learning</p>
@@ -86,7 +86,7 @@ export default function MyLearning({ hub }: { hub: HubSummary }) {
 
   return (
     <>
-      <section className="hero-section" style={{ padding: "96px 32px 40px" }}>
+      <section className="hero-section" style={{ padding: "clamp(64px, 10vw, 96px) clamp(16px, 5vw, 32px) 32px" }}>
         <Toran />
         <div className="container" style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "flex-end", justifyContent: "space-between" }}>
@@ -180,12 +180,12 @@ export default function MyLearning({ hub }: { hub: HubSummary }) {
         </div>
       </section>
 
-      <section className="section section--cream" style={{ padding: "24px 32px 104px" }}>
+      <section className="section section--cream" style={{ padding: "24px clamp(16px, 5vw, 32px) clamp(56px, 10vw, 104px)" }}>
         <div className="container" style={{ display: "flex", flexWrap: "wrap", gap: 22, alignItems: "flex-start" }}>
           <div className="ml-panel" style={{ flex: "999 1 600px" }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
               <h2 style={{ fontSize: 28 }}>Your sections</h2>
-              <div role="group" aria-label="Filter by status" className="segmented" style={{ background: "var(--sand)", border: "none" }}>
+              <div role="group" aria-label="Filter by status" className="segmented ml-tabs" style={{ background: "var(--sand)", border: "none" }}>
                 {TABS.map((k) => (
                   <button key={k} type="button" aria-pressed={tab === k} onClick={() => setTab(k)} style={{ fontSize: 13 }}>
                     {k === "all" ? "All" : k} <span style={{ opacity: 0.75 }}>{k === "all" ? stats.length : stats.filter((x) => x.st.status === k).length}</span>
@@ -206,7 +206,7 @@ export default function MyLearning({ hub }: { hub: HubSummary }) {
                     <div className="arch-thumb" style={{ width: 56, height: 70 }}>
                       {s.img && <img src={s.img} alt="" className="cover" />}
                     </div>
-                    <div style={{ flex: "1 1 220px", minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+                    <div className="ml-row__main">
                       <span className="label">{catName(s.cat)}</span>
                       <span style={{ fontFamily: "var(--font-display)", fontSize: 21, fontWeight: 600, lineHeight: 1.15 }}>{s.title}</span>
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>

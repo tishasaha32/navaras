@@ -71,7 +71,7 @@ export default async function DanceCompanyPage() {
       {/* BATCHES */}
       {batches.visible && (
         <section className="section section--cream">
-          <div className="container" style={{ display: "flex", flexDirection: "column", gap: 48 }}>
+          <div className="container" style={{ display: "flex", flexDirection: "column", gap: "clamp(28px, 6vw, 48px)" }}>
             <SectionHead eyebrow={batches.text("eyebrow")} title={batches.text("heading")} />
             <div className="grid-auto" style={minCol(240, { gap: 20 })}>
               {batches.list("list").map((b, i) => {
@@ -125,7 +125,7 @@ export default async function DanceCompanyPage() {
 
       {/* PORTAL */}
       {portal.visible && (
-        <section id="portal" className="section section--cream" style={{ paddingTop: 120, paddingBottom: 120, scrollMarginTop: 80 }}>
+        <section id="portal" className="section section--cream" style={{ paddingTop: "clamp(56px, 10vw, 120px)", paddingBottom: "clamp(56px, 10vw, 120px)", scrollMarginTop: 80 }}>
           <div className="container split">
             <div className="stack" style={{ flex: "1 1 400px", gap: 18 }}>
               <p className="eyebrow">{portal.text("eyebrow")}</p>
@@ -169,7 +169,7 @@ export default async function DanceCompanyPage() {
 
       {/* HUB LINK */}
       {hubLink.visible && (
-        <section className="section section--cream" style={{ paddingTop: 0, paddingBottom: 120 }}>
+        <section className="section section--cream" style={{ paddingTop: 0, paddingBottom: "clamp(56px, 10vw, 120px)" }}>
           <div className="container banner">
             <Mandala reverse style={{ right: -160, top: "50%", marginTop: -220, width: 440, height: 440 }} />
             <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 6 }}>

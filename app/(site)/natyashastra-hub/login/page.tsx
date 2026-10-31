@@ -17,7 +17,7 @@ const perks = [
 
 export default function LoginPage() {
   return (
-    <section className="hero-section" style={{ padding: "104px 32px 120px" }}>
+    <section className="hero-section" style={{ padding: "clamp(56px, 10vw, 104px) clamp(16px, 5vw, 32px) clamp(64px, 10vw, 120px)" }}>
       <Toran />
       <div className="auth-shell">
         <div className="auth-aside">

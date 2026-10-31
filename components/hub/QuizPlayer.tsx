@@ -77,7 +77,7 @@ export default function QuizPlayer({
       </span>
 
       {ready && !learner && (
-        <div className="quiz-panel quiz-panel--center" style={{ padding: "56px 32px" }}>
+        <div className="quiz-panel quiz-panel--center" style={{ padding: "clamp(32px, 8vw, 56px) clamp(16px, 5vw, 32px)" }}>
           <Mandala style={{ left: "50%", top: "50%", width: 640, height: 640, margin: "-320px 0 0 -320px" }} />
           <span aria-hidden="true" className="quiz-lock">
             <LockIcon size={34} />
@@ -280,7 +280,7 @@ function Results({
   const newBest = bestBefore === null || pct > bestBefore;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div className="quiz-panel quiz-panel--center" style={{ padding: "40px 32px" }}>
+      <div className="quiz-panel quiz-panel--center" style={{ padding: "32px clamp(16px, 5vw, 32px)" }}>
         <Mandala style={{ left: "50%", top: "50%", width: 640, height: 640, margin: "-320px 0 0 -320px" }} />
         <div className="quiz-score" style={{ boxShadow: `0 0 0 6px ${passed ? "#4F7A3A" : "#E89A2C"}, 0 0 0 8px var(--gold)` }}>
           <strong>{pct}%</strong>

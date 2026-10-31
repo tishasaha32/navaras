@@ -11,13 +11,24 @@ import { useLearner } from "./LearnerProvider";
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
+const PER_PAGE = 6;
+
 export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; initialCategory?: string }) {
   const { ready, learner, progress } = useLearner();
   const [filter, setFilter] = useState(hub.categories.some((c) => c.id === initialCategory) ? initialCategory! : "all");
+  const [page, setPage] = useState(1);
   const t = totals(hub, progress);
   const catName = (id: string) => hub.categories.find((c) => c.id === id)?.name ?? "";
   const shown = hub.sections.filter((s) => filter === "all" || s.cat === filter);
   const usedCats = hub.categories.filter((c) => hub.sections.some((s) => s.cat === c.id));
+  const pages = Math.max(1, Math.ceil(shown.length / PER_PAGE));
+  const firstShown = (page - 1) * PER_PAGE;
+  const onPage = shown.slice(firstShown, firstShown + PER_PAGE);
+
+  const goToPage = (next: number) => {
+    setPage(next);
+    document.getElementById("library")?.scrollIntoView();
+  };
 
   const cur = learner ? currentSection(hub, progress) : undefined;
   const curStats = cur && sectionStats(cur, progress);
@@ -26,7 +37,7 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
   return (
     <>
       {/* HERO */}
-      <section className="hero-section" style={{ padding: "96px 32px 72px" }}>
+      <section className="hero-section" style={{ padding: "clamp(64px, 10vw, 96px) clamp(16px, 5vw, 32px) clamp(40px, 8vw, 72px)" }}>
         <Toran />
         <Mandala variant="light" style={{ left: -320, top: -180, width: 640, height: 640 }} />
         <div className="container" style={{ display: "flex", flexWrap: "wrap", gap: 48, alignItems: "center", justifyContent: "space-between" }}>
@@ -119,7 +130,7 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
       </section>
 
       {/* LIBRARY */}
-      <section id="library" className="section section--jaal" style={{ paddingTop: 96, paddingBottom: 104, scrollMarginTop: 60 }}>
+      <section id="library" className="section section--jaal" style={{ paddingTop: "clamp(48px, 10vw, 96px)", paddingBottom: "clamp(56px, 10vw, 104px)", scrollMarginTop: 60 }}>
         <div className="container" style={{ display: "flex", flexDirection: "column", gap: 36 }}>
           <div className="section-head">
             <p className="eyebrow">Library</p>
@@ -128,9 +139,18 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
             </h2>
             <Divider />
             {usedCats.length > 1 && (
-              <div role="group" aria-label="Filter by category" style={{ marginTop: 8, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
+              <div role="group" aria-label="Filter by category" className="hub-chips">
                 {[{ id: "all", name: "All sections", dev: "" }, ...usedCats].map((c) => (
-                  <button key={c.id} type="button" className="chip chip--dev" aria-pressed={filter === c.id} onClick={() => setFilter(c.id)}>
+                  <button
+                    key={c.id}
+                    type="button"
+                    className="chip chip--dev"
+                    aria-pressed={filter === c.id}
+                    onClick={() => {
+                      setFilter(c.id);
+                      setPage(1);
+                    }}
+                  >
                     {c.name}
                     {c.dev && <span lang="sa">{c.dev}</span>}
                   </button>
@@ -138,7 +158,9 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
               </div>
             )}
             <span aria-live="polite" className="muted" style={{ fontSize: 14 }}>
-              Showing {shown.length} of {plural(hub.sections.length, "section", "sections")}
+              {pages === 1
+                ? `Showing ${shown.length} of ${plural(hub.sections.length, "section", "sections")}`
+                : `Showing ${onPage.length === 1 ? firstShown + 1 : `${firstShown + 1}–${firstShown + onPage.length}`} of ${plural(shown.length, "section", "sections")}`}
             </span>
           </div>
 
@@ -148,7 +170,7 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
             </p>
           ) : (
             <div className="grid-fill" style={{ "--min": "330px", gap: 24 } as React.CSSProperties}>
-              {shown.map((s) => {
+              {onPage.map((s) => {
                 const st = sectionStats(s, progress);
                 const next = nextInSection(s, progress);
                 const inProgress = learner && st.status === "In progress";
@@ -211,12 +233,28 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
               })}
             </div>
           )}
+
+          {pages > 1 && (
+            <nav aria-label="Pages of sections" className="pagination">
+              <button type="button" className="pagination__step" disabled={page === 1} onClick={() => goToPage(page - 1)}>
+                ← Previous
+              </button>
+              {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+                <button key={n} type="button" className="pagination__num" aria-label={`Page ${n}`} aria-current={n === page ? "page" : undefined} onClick={() => goToPage(n)}>
+                  {n}
+                </button>
+              ))}
+              <button type="button" className="pagination__step" disabled={page === pages} onClick={() => goToPage(page + 1)}>
+                Next →
+              </button>
+            </nav>
+          )}
         </div>
       </section>
 
       {/* HOW IT WORKS (logged out) */}
       {ready && !learner && (
-        <section className="section section--cream" style={{ paddingTop: 104, paddingBottom: 104 }}>
+        <section className="section section--cream" style={{ paddingTop: "clamp(56px, 10vw, 104px)", paddingBottom: "clamp(56px, 10vw, 104px)" }}>
           <div className="container" style={{ maxWidth: 1120, display: "flex", flexDirection: "column", gap: 40 }}>
             <div className="section-head">
               <p className="eyebrow">How the Hub works</p>

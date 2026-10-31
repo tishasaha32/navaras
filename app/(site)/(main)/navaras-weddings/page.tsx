@@ -70,7 +70,7 @@ export default async function WeddingsPage() {
       {/* PACKAGES */}
       {packages.visible && (
         <section className="section section--jaal">
-          <div className="container" style={{ display: "flex", flexDirection: "column", gap: 48 }}>
+          <div className="container" style={{ display: "flex", flexDirection: "column", gap: "clamp(28px, 6vw, 48px)" }}>
             <SectionHead eyebrow={packages.text("eyebrow")} title={packages.text("heading")} />
             <div className="grid-auto" style={minCol(260)}>
               {packages.list("list").map((p, i) =>
@@ -104,8 +104,8 @@ export default async function WeddingsPage() {
 
       {/* FARAWAY FAMILIES */}
       {online.visible && (
-        <section className="section section--cream" style={{ paddingTop: 120, paddingBottom: 120 }}>
-          <div className="container split" style={{ gap: 72 }}>
+        <section className="section section--cream" style={{ paddingTop: "clamp(56px, 10vw, 120px)", paddingBottom: "clamp(56px, 10vw, 120px)", overflowX: "clip" }}>
+          <div className="container split" style={{ gap: "clamp(28px, 6vw, 72px)" }}>
             {online.text("img") && (
               <div style={{ flex: "1 1 440px", display: "flex", justifyContent: "center" }}>
                 <div style={{ position: "relative", width: 480, maxWidth: "100%", aspectRatio: "1 / 1" }}>
@@ -160,7 +160,7 @@ export default async function WeddingsPage() {
       {steps.visible && stepList.length > 0 && (
         <section className="section section--maroon">
           <Mandala style={{ left: "50%", bottom: -560, marginLeft: -380, width: 760, height: 760, maxWidth: "none" }} />
-          <div className="container" style={{ display: "flex", flexDirection: "column", gap: 48 }}>
+          <div className="container" style={{ display: "flex", flexDirection: "column", gap: "clamp(28px, 6vw, 48px)" }}>
             <SectionHead dev={steps.text("kicker")} title={steps.text("heading")} light />
             <ol className="grid-auto" style={minCol(190, { margin: 0, padding: 0, listStyle: "none", gap: 18 })}>
               {stepList.map((s, i) => {
@@ -185,8 +185,8 @@ export default async function WeddingsPage() {
 
       {/* PORTFOLIO */}
       {portfolio.visible && (
-        <section id="portfolio" className="section section--cream" style={{ paddingTop: 120, paddingBottom: 120, scrollMarginTop: 80 }}>
-          <div className="container" style={{ display: "flex", flexDirection: "column", gap: 48 }}>
+        <section id="portfolio" className="section section--cream" style={{ paddingTop: "clamp(56px, 10vw, 120px)", paddingBottom: "clamp(56px, 10vw, 120px)", scrollMarginTop: 80 }}>
+          <div className="container" style={{ display: "flex", flexDirection: "column", gap: "clamp(28px, 6vw, 48px)" }}>
             <SectionHead eyebrow={portfolio.text("eyebrow")} title={portfolio.text("heading")} />
             <div className="grid-auto" style={minCol(300, { gap: 24 })}>
               {portfolio
@@ -227,7 +227,7 @@ export default async function WeddingsPage() {
 
       {/* QUOTE FORM */}
       {quote.visible && (
-        <section id="quote" className="section section--jaal" style={{ paddingTop: 120, paddingBottom: 120, borderBottom: "none", scrollMarginTop: 80 }}>
+        <section id="quote" className="section section--jaal" style={{ paddingTop: "clamp(56px, 10vw, 120px)", paddingBottom: "clamp(56px, 10vw, 120px)", borderBottom: "none", scrollMarginTop: 80 }}>
           <QuoteForm
             eyebrow={quote.text("eyebrow")}
             title={quote.text("heading")}

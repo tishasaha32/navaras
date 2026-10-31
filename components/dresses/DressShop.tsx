@@ -54,8 +54,8 @@ export default function DressShop({ hero, catalogue, custom }: { hero: React.Rea
       </section>
 
       {catalogue && tab === "rent" && (
-        <section role="tabpanel" aria-label="Rental" className="section section--ivory" style={{ padding: "64px 32px 112px", borderTop: "1px solid var(--line-gold)" }}>
-          <div className="container" style={{ display: "flex", flexWrap: "wrap", gap: 48 }}>
+        <section role="tabpanel" aria-label="Rental" className="section section--ivory" style={{ padding: "clamp(32px, 8vw, 64px) clamp(16px, 5vw, 32px) clamp(56px, 10vw, 112px)", borderTop: "1px solid var(--line-gold)" }}>
+          <div className="container" style={{ display: "flex", flexWrap: "wrap", gap: "clamp(28px, 6vw, 48px)" }}>
             <aside className="filters">
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <span className="label">Occasion</span>
@@ -135,7 +135,7 @@ export default function DressShop({ hero, catalogue, custom }: { hero: React.Rea
       )}
 
       {custom && (tab === "custom" || !catalogue) && (
-        <section role="tabpanel" aria-label="Custom stitching" className="section section--ivory" style={{ padding: "64px 32px 112px", borderTop: "1px solid var(--line-gold)" }}>
+        <section role="tabpanel" aria-label="Custom stitching" className="section section--ivory" style={{ padding: "clamp(32px, 8vw, 64px) clamp(16px, 5vw, 32px) clamp(56px, 10vw, 112px)", borderTop: "1px solid var(--line-gold)" }}>
           <div className="container" style={{ display: "flex", flexDirection: "column", gap: 44 }}>
             <div className="section-head">
               <h2 className="h2" style={{ fontSize: "clamp(28px, 3.08vw, 37px)" }}>

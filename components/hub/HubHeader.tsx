@@ -12,11 +12,13 @@ export default function HubHeader() {
   const { ready, learner, signOut } = useLearner();
   const onMyLearning = pathname.startsWith(`${HUB_PATH}/my-learning`);
   const onLogin = pathname === `${HUB_PATH}/login`;
+  const onHome = pathname === HUB_PATH;
 
   return (
     <Header
       links={[
-        { href: HUB_PATH, label: "Library", current: !onMyLearning && !onLogin },
+        { href: HUB_PATH, label: "Hub", current: onHome },
+        { href: `${HUB_PATH}#library`, label: "Library", current: !onHome && !onMyLearning && !onLogin },
         ...(learner ? [{ href: `${HUB_PATH}/my-learning`, label: "My learning", current: onMyLearning }] : []),
         { href: "/", label: "Main site" },
       ]}

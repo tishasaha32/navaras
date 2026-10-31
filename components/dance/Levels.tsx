@@ -14,7 +14,7 @@ export default function Levels({ levels, dev, title }: { levels: ListItem[]; dev
   const [style, setStyle] = useState<(typeof STYLES)[number]>(STYLES[0]);
 
   return (
-    <div className="container" style={{ display: "flex", flexDirection: "column", gap: 48 }}>
+    <div className="container" style={{ display: "flex", flexDirection: "column", gap: "clamp(28px, 6vw, 48px)" }}>
       <div className="section-head">
         <p lang="hi" className="dev" style={{ fontWeight: 400 }}>
           {dev}

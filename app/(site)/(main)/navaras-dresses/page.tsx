@@ -77,7 +77,7 @@ export default async function DressesPage() {
       {arangetram.visible && (
         <section className="section" style={{ overflow: "hidden", background: "var(--yellow)" }}>
           <Mandala variant="light" style={{ right: -300, top: -260, width: 680, height: 680 }} />
-          <div className="container split" style={{ gap: 72 }}>
+          <div className="container split" style={{ gap: "clamp(28px, 6vw, 72px)" }}>
             {arangetram.text("img") && (
               <div style={{ flex: "1 1 420px", display: "flex", justifyContent: "center" }}>
                 <div
@@ -126,8 +126,8 @@ export default async function DressesPage() {
 
       {/* POLICIES */}
       {policies.visible && policyList.length > 0 && (
-        <section id="policies" className="section section--cream" style={{ paddingTop: 120, paddingBottom: 120, scrollMarginTop: 80 }}>
-          <div className="container" style={{ display: "flex", flexWrap: "wrap", gap: 64 }}>
+        <section id="policies" className="section section--cream" style={{ paddingTop: "clamp(56px, 10vw, 120px)", paddingBottom: "clamp(56px, 10vw, 120px)", scrollMarginTop: 80 }}>
+          <div className="container" style={{ display: "flex", flexWrap: "wrap", gap: "clamp(28px, 6vw, 64px)" }}>
             <div className="stack" style={{ flex: "1 1 340px", gap: 16 }}>
               <p className="eyebrow">{policies.text("eyebrow")}</p>
               <h2 className="h2" style={{ fontSize: "clamp(29px, 3.24vw, 39px)" }}>
@@ -149,7 +149,7 @@ export default async function DressesPage() {
 
       {/* STUDENT PERK */}
       {perk.visible && perk.text("discount") && (
-        <section className="section section--cream" style={{ paddingTop: 0, paddingBottom: 120 }}>
+        <section className="section section--cream" style={{ paddingTop: 0, paddingBottom: "clamp(56px, 10vw, 120px)" }}>
           <div className="container banner">
             <Mandala style={{ right: -160, top: "50%", marginTop: -220, width: 440, height: 440 }} />
             <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 8 }}>

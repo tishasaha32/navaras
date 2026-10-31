@@ -48,7 +48,7 @@ export default async function Home() {
 
       {/* NATYASHASTRA HUB INTRO */}
       {hub.visible && (
-      <section id="hub-intro" className="section section--maroon" style={{ paddingTop: 120, paddingBottom: 120 }}>
+      <section id="hub-intro" className="section section--maroon" style={{ paddingTop: "clamp(56px, 10vw, 120px)", paddingBottom: "clamp(56px, 10vw, 120px)" }}>
         <Mandala style={{ right: -340, top: -300, width: 680, height: 680 }} />
         <div className="container split" style={{ flexWrap: "wrap-reverse" }}>
           {hub.text("img") && (
@@ -97,8 +97,8 @@ export default async function Home() {
 
       {/* SERVICES */}
       {services.visible && (
-      <section id="services" className="section section--jaal" style={{ paddingTop: 120, paddingBottom: 120, borderBottom: "none" }}>
-        <div className="container" style={{ display: "flex", flexDirection: "column", gap: 56 }}>
+      <section id="services" className="section section--jaal" style={{ paddingTop: "clamp(56px, 10vw, 120px)", paddingBottom: "clamp(56px, 10vw, 120px)", borderBottom: "none" }}>
+        <div className="container" style={{ display: "flex", flexDirection: "column", gap: "clamp(28px, 6vw, 56px)" }}>
           <div className="section-head" style={{ maxWidth: 760 }}>
             <p className="eyebrow">{services.text("eyebrow")}</p>
             <h2 className="h2" style={{ fontSize: "clamp(31px, 3.4vw, 44px)" }}>

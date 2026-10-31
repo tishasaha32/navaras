@@ -659,6 +659,9 @@ button {
   padding: 0 20px;
   font-size: 14px;
 }
+.nav-panel {
+  display: contents;
+}
 .nav-toggle {
   display: none;
   width: 44px;
@@ -672,29 +675,72 @@ button {
   cursor: pointer;
 }
 
+/* The menu slides in from the right, with the toggle staying on top of it as the close button. */
 @media (max-width: 900px) {
   .nav-toggle {
+    position: relative;
+    z-index: 3;
     display: inline-flex;
   }
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    border: none;
+    background: rgba(59, 29, 18, 0.5);
+  }
+  /* Clips the closed menu: left off-screen, it would widen the page and make phones zoom out. */
+  .nav-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    display: block;
+    overflow: hidden;
+    pointer-events: none;
+  }
   .nav-links {
-    display: none;
-    width: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: auto;
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
     gap: 4px;
-    padding-bottom: 8px;
+    width: min(320px, 84vw);
+    padding: 84px 20px calc(24px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    background: var(--ivory);
+    box-shadow: var(--shadow-frame);
+    font-size: 17px;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.3s ease, visibility 0.3s;
   }
   .nav-links[data-open="true"] {
-    display: flex;
+    transform: none;
+    visibility: visible;
+    transition: transform 0.3s ease;
   }
-  .nav-links a {
-    min-height: 44px;
+  .nav-links a:not(.btn) {
+    min-height: 52px;
     display: flex;
     align-items: center;
+    border-bottom: 1px solid var(--line);
   }
   .nav-links .btn {
-    margin-top: 8px;
+    flex: none;
+    min-height: 50px;
+    margin-top: 16px;
     justify-content: center;
+    font-size: 16px;
+  }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .nav-links,
+  .nav-links[data-open="true"] {
+    transition: none;
   }
 }
 
@@ -712,6 +758,37 @@ button {
 }
 .site-footer a:hover {
   color: var(--gold-soft);
+}
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+.footer-all {
+  scroll-margin-top: 92px;
+}
+.footer-all__toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  border: 1.5px solid var(--gold-soft);
+  border-radius: 50%;
+  color: var(--gold-soft);
+  list-style: none;
+  cursor: pointer;
+}
+.footer-all__toggle::-webkit-details-marker {
+  display: none;
+}
+.footer-all__toggle svg {
+  transition: transform 0.2s ease;
+}
+.footer-all[open] .footer-all__toggle svg {
+  transform: rotate(180deg);
 }
 .footer-top {
   display: flex;
@@ -749,17 +826,110 @@ button {
   gap: 40px;
   font-size: 14px;
 }
-.footer-col {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
 .footer-col__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   color: var(--gold-soft);
   font-weight: 700;
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  list-style: none;
+}
+.footer-col__title::-webkit-details-marker {
+  display: none;
+}
+.footer-col__links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+}
+.footer-about {
+  flex: 1 1 360px;
+}
+.footer-news {
+  flex: 1 1 420px;
+}
+.footer-about .footer-col__links {
+  gap: 14px;
+}
+/* Everything is a <details>: always open here, and an accordion on phones and in browsers that can't force it open. */
+@media (min-width: 641px) {
+  @supports selector(::details-content) {
+    .footer-all::details-content,
+    .footer-col::details-content {
+      content-visibility: visible;
+      display: block;
+    }
+    .footer-all__toggle {
+      display: none;
+    }
+    .footer-col__title {
+      pointer-events: none;
+    }
+    .footer-top .footer-col__title {
+      display: none;
+    }
+    .footer-top .footer-col__links {
+      padding-top: 0;
+    }
+  }
+}
+@media (max-width: 640px) {
+  .footer-inner {
+    gap: 0;
+    padding-top: 12px;
+  }
+  .footer-top,
+  .footer-cols {
+    display: block;
+  }
+  .footer-top {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  .footer-col {
+    border-bottom: 1px solid var(--footer-line);
+  }
+  .footer-col__title {
+    min-height: 54px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .footer-col__title::after {
+    content: "";
+    flex: none;
+    width: 9px;
+    height: 9px;
+    margin-right: 3px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg) translate(-2px, -2px);
+    transition: transform 0.2s ease;
+  }
+  .footer-col[open] .footer-col__title::after {
+    transform: rotate(-135deg) translate(-2px, -2px);
+  }
+  .footer-col__links {
+    gap: 4px;
+    padding: 0 0 16px;
+    font-size: 15px;
+  }
+  .footer-col__links > a:not(.btn) {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    text-decoration: none;
+  }
+  .site-footer .footer-bottom {
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 20px;
+    border-top: none;
+  }
 }
 .footer-input {
   min-height: 50px;
@@ -798,20 +968,43 @@ button {
   .hero-section {
     padding-left: 16px;
     padding-right: 16px;
-    padding-top: 88px;
-    padding-bottom: 88px;
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+  /* Tighter, with smaller pictures, so pages aren't several screens of spacing. */
+  .split {
+    gap: 28px;
+  }
+  .stack {
+    gap: 16px;
+  }
+  .arch {
+    max-width: min(270px, calc(100% - 32px));
+  }
+  .service-card__media {
+    aspect-ratio: 1 / 0.72;
+  }
+  .grid-auto,
+  .grid-fill {
+    gap: 14px;
+  }
+  .btn-row .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .footer-bottom a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
   }
   .site-nav {
     padding: 12px 16px;
   }
   .site-footer {
-    padding: 96px 16px 28px;
+    padding: 72px 16px 24px;
   }
   .banner {
     padding: 32px 24px;
-  }
-  .split {
-    gap: 40px;
   }
 }
 
@@ -1605,14 +1798,24 @@ button {
 .carousel__slide [data-layout="column"] > .video-player:only-child {
   width: min(var(--size, 100%), calc((100cqh - 80px) * var(--shape, 16 / 9)));
 }
-/* Stacked columns can't fit a fixed shape on a phone, so these carousels grow to fit instead of scrolling inside. */
+/* Phones are too narrow for 16:9 or 1:1 to fit a slide, so every carousel is one height, with stacked columns scrolling inside. */
 @media (max-width: 540px) {
-  .carousel:has([data-layout="columns"]) .carousel__track {
-    aspect-ratio: auto;
+  /* Nearly the width of the screen, whatever padding the lesson has. */
+  .rich .carousel {
+    width: calc(100vw - 16px);
+    max-width: none;
+    margin-inline: calc(50% - 50vw + 8px);
   }
-  .carousel__slide:has([data-layout="columns"]) {
-    overflow-y: visible;
-    container-type: normal;
+  /* A list item sits off-centre by half the list's indent. */
+  .rich li > .carousel {
+    margin-left: calc(50% - 50vw + 8px - 0.625em);
+  }
+  .carousel__slide {
+    padding: 14px;
+  }
+  .carousel .carousel__track {
+    height: 480px;
+    aspect-ratio: auto !important;
   }
   .carousel__slide [data-layout="column"]:has(> img:only-child, > .video-player:only-child) {
     position: static;
@@ -1646,9 +1849,9 @@ button {
   width: auto;
   object-fit: cover;
 }
-/* The phone layout above lets the slide grow, so a percentage height would stretch with it. */
+/* The phone height above is taller than most shapes, so these keep their width instead of filling it. */
 @media (max-width: 540px) {
-  .carousel:has([data-layout="columns"]) .carousel__slide > img[data-ratio]:only-child {
+  .carousel__slide > img[data-ratio]:only-child {
     width: 100%;
     height: auto;
   }
@@ -1944,11 +2147,74 @@ button {
 }
 .chip--dev {
   display: inline-flex;
-  align-items: baseline;
+  flex: none;
+  align-items: center;
   gap: 8px;
   min-height: 46px;
   padding: 0 20px;
   font-size: 15px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.hub-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 100%;
+  margin-top: 8px;
+}
+/* Otherwise the heading sizes to its content, and the row of chips below would stretch the whole page. */
+.section-head:has(.hub-chips) {
+  width: 100%;
+}
+/* One row that swipes on phones, so the sections stay near the top. */
+@media (max-width: 640px) {
+  .hub-chips {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-self: stretch;
+    max-width: none;
+    margin-inline: -16px;
+    padding: 2px 16px 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .hub-chips::-webkit-scrollbar {
+    display: none;
+  }
+}
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.pagination button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--line-input);
+  border-radius: 999px;
+  background: var(--ivory);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pagination button:hover:not(:disabled) {
+  background: var(--sand);
+}
+.pagination button[aria-current="page"] {
+  border-color: var(--maroon);
+  background: var(--maroon);
+  color: var(--ivory);
+}
+.pagination button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 .chip--dev [lang] {
   font-family: var(--font-display);
@@ -2008,6 +2274,17 @@ button {
   font-size: 16px;
   color: var(--rose);
 }
+@media (max-width: 640px) {
+  .sec-card__media {
+    height: 170px;
+  }
+  .sec-card__body {
+    padding: 16px 18px 18px;
+  }
+  .sec-card__title {
+    font-size: 22px;
+  }
+}
 .sec-card__meta {
   display: flex;
   flex-wrap: wrap;
@@ -2063,9 +2340,80 @@ button {
     overflow-y: auto;
   }
 }
+/* Too narrow for a sidebar: it slides in instead, opened from a floating button. */
+.reader-toggle,
+.reader-close {
+  display: none;
+}
 @media (max-width: 1039px) {
+  .reader-toggle {
+    position: fixed;
+    right: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 2px solid var(--gold-soft);
+    border-radius: 50%;
+    background: var(--maroon);
+    box-shadow: var(--shadow-frame);
+    color: var(--ivory);
+    cursor: pointer;
+  }
+  .reader-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    border: none;
+    background: rgba(59, 29, 18, 0.5);
+  }
   .reader-aside {
-    order: 2;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 61;
+    width: min(360px, 88vw);
+    max-width: none;
+    overflow-y: auto;
+    border-width: 0 1px 0 0;
+    border-radius: 0 22px 22px 0;
+    box-shadow: var(--shadow-frame);
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0.25s;
+  }
+  .reader-aside[data-open="true"] {
+    transform: none;
+    visibility: visible;
+    /* Visible at once, so focus can move into it as it slides in. */
+    transition: transform 0.25s ease;
+  }
+  .reader-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    display: block;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--sand);
+    color: var(--ink);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+  }
+}
+@media (max-width: 1039px) and (prefers-reduced-motion: reduce) {
+  .reader-aside {
+    transition: none;
   }
 }
 .reader-article {
@@ -2497,6 +2845,34 @@ button {
 .ml-item--done {
   background: transparent;
   border: 1px solid #f0e0c2;
+}
+.ml-row__main {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+@media (max-width: 640px) {
+  /* The thumbnail stays beside the title, with the status and button on a line below. */
+  .ml-row__main {
+    flex: 1 1 calc(100% - 76px);
+  }
+  .ml-row {
+    justify-content: space-between;
+  }
+  .ml-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    border-radius: 18px;
+  }
+  .ml-tabs button {
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: 14px;
+    white-space: nowrap;
+  }
 }
 @media (max-width: 520px) {
   .ml-stats {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import RichText from "@/components/RichText";
 import { LockIcon } from "@/components/ui";
 import { HUB_PATH, itemHref, type HubSection, type HubSummary, type SectionSummary } from "@/lib/content/hub";
@@ -37,8 +37,32 @@ export default function SectionReader({ section: s, view, summary, categoryName,
 
   const others = summary.sections.filter((x) => x.id !== s.id);
 
+  /** Below desktop width the sidebar is a slide-in panel (app/globals.css). */
+  const [panelOpen, setPanelOpen] = useState(false);
+  const panelToggle = useRef<HTMLButtonElement>(null);
+  const panelClose = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!panelOpen) return;
+    const close = () => setPanelOpen(false);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    const desktop = window.matchMedia("(min-width: 1040px)");
+    const toggle = panelToggle.current;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    panelClose.current?.focus();
+    document.addEventListener("keydown", onKey);
+    desktop.addEventListener("change", close);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener("keydown", onKey);
+      desktop.removeEventListener("change", close);
+      toggle?.focus({ preventScroll: true });
+    };
+  }, [panelOpen]);
+
   return (
-    <section className="section section--cream" style={{ padding: "32px 32px 104px" }}>
+    <section className="section section--cream" style={{ padding: "24px clamp(16px, 5vw, 32px) 104px" }}>
       <div className="container" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         <nav aria-label="Breadcrumb" className="muted" style={{ fontSize: 14 }}>
           <ol className="crumbs">
@@ -58,8 +82,35 @@ export default function SectionReader({ section: s, view, summary, categoryName,
           </ol>
         </nav>
 
+        <button
+          ref={panelToggle}
+          type="button"
+          className="reader-toggle"
+          aria-label="Chapters and quizzes"
+          title="Chapters and quizzes"
+          aria-expanded={panelOpen}
+          aria-controls="reader-contents"
+          onClick={() => setPanelOpen(true)}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />
+          </svg>
+        </button>
+
         <div className="reader">
-          <aside aria-label="Section contents" className="reader-aside">
+          {panelOpen && <button type="button" className="reader-backdrop" aria-label="Close chapters and quizzes" onClick={() => setPanelOpen(false)} />}
+          <aside
+            id="reader-contents"
+            aria-label="Section contents"
+            className="reader-aside"
+            data-open={panelOpen}
+            onClick={(e) => {
+              if ((e.target as HTMLElement).closest("a")) setPanelOpen(false);
+            }}
+          >
+            <button ref={panelClose} type="button" className="reader-close" aria-label="Close chapters and quizzes" onClick={() => setPanelOpen(false)}>
+              ×
+            </button>
             <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
               <div className="arch-thumb" style={{ width: 70, height: 88 }}>
                 {s.img && <img src={s.img} alt="" className="cover" />}
