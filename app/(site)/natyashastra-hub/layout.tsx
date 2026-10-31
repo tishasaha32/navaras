@@ -8,7 +8,7 @@ export default async function HubLayout({ children }: Readonly<{ children: React
   const chapterIds = hub.sections.flatMap((s) => s.chapters.map((c) => c.id));
   return (
     <LearnerProvider>
-      <HubHeader categories={hub.categories.filter((c) => hub.sections.some((s) => s.cat === c.id))} />
+      <HubHeader />
       <main>
         <HubBar chapterIds={chapterIds} />
         {children}

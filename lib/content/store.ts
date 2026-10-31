@@ -3,21 +3,26 @@ import { promises as fs } from "fs";
 import { draftMode } from "next/headers";
 import path from "path";
 import { cache } from "react";
+import { firebaseEnabled } from "@/lib/firebase-admin";
+import { publishHub, publishPage, readContent, saveDraftHub, saveDraftPage } from "./firebase-store";
 import { publicHub, upgradeChapters, type Hub } from "./hub";
+import { uploadsUsed } from "./hub-docs";
 import { seedHub } from "./hub-seed";
 import { PAGE_KEYS, PAGE_SCHEMAS, normalizePageDoc, type PageDoc, type PageKey } from "./pages";
+import { DATA_DIR } from "./paths";
+import { deleteUpload } from "./uploads";
 
 /**
- * File-backed content store. Content lives in `data/site.json` (override the folder with
- * CONTENT_DIR). Every editable area — the four pages and the Hub — has a live copy that the
- * site shows and an optional draft that only the admin sees until it is published.
+ * Content store. Every editable area — the four pages and the Hub — has a live copy that the
+ * site shows and an optional draft that only the admin sees until it is published. Content
+ * lives in Firestore (firebase-store.ts) when CONTENT_STORE=firebase, else in `data/site.json`.
  *
- * This module is the only place that touches storage, so it can be swapped for Firestore
- * without changing the pages or the admin.
+ * This module is the only place the site and the admin reach content from.
  */
-export const DATA_DIR = process.env.CONTENT_DIR ?? path.join(process.cwd(), "data");
-export const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 const CONTENT_FILE = path.join(DATA_DIR, "site.json");
+
+/** How long visitors' pages reuse one read of Firestore; each read costs about 60 documents. */
+const CACHE_MS = 5 * 60 * 1000;
 
 export type AreaKey = PageKey | "hub";
 export type Site = { pages: Record<PageKey, PageDoc>; hub: Hub };
@@ -67,12 +72,32 @@ async function writeToDisk(file: StoreFile) {
   await fs.rename(tmp, CONTENT_FILE);
 }
 
-const readOnce = cache(readFromDisk);
+async function readFromFirebase(): Promise<StoreFile> {
+  const { live, drafts } = await readContent();
+  return normalize({ live: live as Site, drafts: drafts as Drafts });
+}
+
+const readFresh = () => (firebaseEnabled ? readFromFirebase() : readFromDisk());
+
+let cached: { file: Promise<StoreFile>; at: number } | null = null;
+
+function readCached() {
+  if (!firebaseEnabled) return readFromDisk();
+  if (!cached || Date.now() - cached.at > CACHE_MS) {
+    const file = readFromFirebase();
+    file.catch(() => (cached = null));
+    cached = { file, at: Date.now() };
+  }
+  return cached.file;
+}
+
+const readForVisitors = cache(readCached);
+const readForAdmin = cache(readFresh);
 
 /** What visitors see — or, while an admin previews (Next draft mode), the saved drafts. */
 export async function getLive(): Promise<Site> {
-  const file = await readOnce();
-  if (!(await draftMode()).isEnabled) return file.live;
+  if (!(await draftMode()).isEnabled) return (await readForVisitors()).live;
+  const file = await readForAdmin();
   const pages = { ...file.live.pages };
   for (const k of PAGE_KEYS) if (file.drafts[k]) pages[k] = file.drafts[k]!;
   return { pages, hub: file.drafts.hub ?? file.live.hub };
@@ -85,7 +110,7 @@ export async function getPublicHub(): Promise<Hub> {
 
 /** What the admin edits: the saved draft if there is one, else the live copy. */
 export async function getEditable<K extends AreaKey>(key: K): Promise<{ data: K extends "hub" ? Hub : PageDoc; hasDraft: boolean }> {
-  const file = await readOnce();
+  const file = await readForAdmin();
   const draft = file.drafts[key];
   const live = key === "hub" ? file.live.hub : file.live.pages[key as PageKey];
   return { data: (draft ?? live) as K extends "hub" ? Hub : PageDoc, hasDraft: Boolean(draft) };
@@ -93,26 +118,46 @@ export async function getEditable<K extends AreaKey>(key: K): Promise<{ data: K 
 
 let queue: Promise<unknown> = Promise.resolve();
 
-function mutate(change: (file: StoreFile) => void): Promise<void> {
+/** Applies one save in turn, then deletes any uploaded file that save stopped using. */
+function change(apply: () => Promise<void>): Promise<void> {
   const run = queue.then(async () => {
-    const file = await readFromDisk();
-    change(file);
-    await writeToDisk(file);
+    const before = uploadsUsed(await readFresh());
+    await apply();
+    cached = null;
+    const after = uploadsUsed(await readFresh());
+    await Promise.all([...before].filter((name) => !after.has(name)).map((name) => deleteUpload(name).catch(console.error)));
   });
   queue = run.catch(() => undefined);
   return run;
 }
 
+async function editFile(edit: (file: StoreFile) => void) {
+  const file = await readFromDisk();
+  edit(file);
+  await writeToDisk(file);
+}
+
 export function saveDraft(key: AreaKey, data: PageDoc | Hub) {
-  return mutate((file) => {
-    (file.drafts as Record<string, unknown>)[key] = data;
+  return change(() => {
+    if (!firebaseEnabled) return editFile((file) => void ((file.drafts as Record<string, unknown>)[key] = data));
+    return key === "hub" ? saveDraftHub(data as Hub) : saveDraftPage(key, data as PageDoc);
   });
 }
 
 export function publish(key: AreaKey, data: PageDoc | Hub) {
-  return mutate((file) => {
-    if (key === "hub") file.live.hub = data as Hub;
-    else file.live.pages[key] = data as PageDoc;
-    delete file.drafts[key];
+  return change(() => {
+    if (firebaseEnabled) return key === "hub" ? publishHub(data as Hub) : publishPage(key, data as PageDoc);
+    return editFile((file) => {
+      if (key === "hub") file.live.hub = data as Hub;
+      else file.live.pages[key] = data as PageDoc;
+      delete file.drafts[key];
+    });
   });
+}
+
+/** Deletes an uploaded file nothing uses any more. Returns false if something still does. */
+export async function deleteUnusedUpload(name: string): Promise<boolean> {
+  if (uploadsUsed(await readFresh()).has(name)) return false;
+  await deleteUpload(name);
+  return true;
 }

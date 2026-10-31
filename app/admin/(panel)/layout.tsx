@@ -5,8 +5,8 @@ import { PAGE_SCHEMAS } from "@/lib/content/pages";
 export const dynamic = "force-dynamic";
 
 const links = [
-  { href: `/admin/${PAGE_SCHEMAS.landing.slug}`, label: PAGE_SCHEMAS.landing.label },
   { href: "/admin/natyashastra-hub", label: "Natyashastra Hub" },
+  { href: `/admin/${PAGE_SCHEMAS.landing.slug}`, label: PAGE_SCHEMAS.landing.label },
   { href: `/admin/${PAGE_SCHEMAS.dance.slug}`, label: PAGE_SCHEMAS.dance.label },
   { href: `/admin/${PAGE_SCHEMAS.weddings.slug}`, label: PAGE_SCHEMAS.weddings.label },
   { href: `/admin/${PAGE_SCHEMAS.dresses.slug}`, label: PAGE_SCHEMAS.dresses.label },

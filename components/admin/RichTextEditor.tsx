@@ -10,7 +10,7 @@ import { Color, TextStyle } from "@tiptap/extension-text-style";
 import { CharacterCount } from "@tiptap/extensions";
 import { EditorContent, findParentNode, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { ActionResult } from "@/app/admin/actions";
 import { MAX_AUDIO_MB, MAX_VIDEO_MB } from "@/lib/content/hub";
 import { Audio, CAROUSEL_RATIOS, Carousel, CarouselSlide, Column, Columns, LayoutBox, MEDIA_RATIOS, ResizableImage, ResizableYoutube, Video } from "./RichTextBlocks";
@@ -29,6 +29,15 @@ type Props = {
   /** Stores a video file; the toolbar shows the upload button only when this is set. */
   onUploadVideo?: (form: FormData) => Promise<ActionResult>;
 };
+
+const TEXT_ALIGNMENTS = [
+  { value: "left", label: "Align left", icon: "M4 6h16M4 12h10M4 18h14" },
+  { value: "center", label: "Align centre", icon: "M4 6h16M7 12h10M5 18h14" },
+  { value: "right", label: "Align right", icon: "M4 6h16M10 12h10M6 18h14" },
+  { value: "justify", label: "Justify", icon: "M4 6h16M4 12h16M4 18h16" },
+];
+
+const MENU_WIDTH = 230;
 
 const MEDIA_ALIGNMENTS = [
   { value: "left", label: "Left" },
@@ -112,6 +121,9 @@ export default function RichTextEditor({ id, value, onChange, placeholder, inval
 function Toolbar({ editor, onPickImage, onUploadAudio, onUploadVideo }: { editor: Editor } & Pick<Props, "onPickImage" | "onUploadAudio" | "onUploadVideo">) {
   const [uploading, setUploading] = useState<"audio" | "video" | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [tip, setTip] = useState<{ text: string; top: number; left: number } | null>(null);
+  const audioInput = useRef<HTMLInputElement>(null);
+  const videoInput = useRef<HTMLInputElement>(null);
   const s = useEditorState({
     editor,
     selector: ({ editor: e }) => {
@@ -127,10 +139,7 @@ function Toolbar({ editor, onPickImage, onUploadAudio, onUploadVideo }: { editor
         sub: e.isActive("subscript"),
         sup: e.isActive("superscript"),
         color: (e.getAttributes("textStyle").color as string | undefined) ?? "",
-        left: e.isActive({ textAlign: "left" }),
-        center: e.isActive({ textAlign: "center" }),
-        right: e.isActive({ textAlign: "right" }),
-        justify: e.isActive({ textAlign: "justify" }),
+        align: TEXT_ALIGNMENTS.find((a) => e.isActive({ textAlign: a.value })) ?? TEXT_ALIGNMENTS[0],
         bullet: e.isActive("bulletList"),
         ordered: e.isActive("orderedList"),
         quote: e.isActive("blockquote"),
@@ -198,125 +207,126 @@ function Toolbar({ editor, onPickImage, onUploadAudio, onUploadVideo }: { editor
     if (!chain().setYoutubeVideo({ src: url.trim() }).run()) window.alert("That doesn’t look like a YouTube link.");
   };
 
-  const colourValue = TEXT_COLOURS.some((c) => c.value.toLowerCase() === s.color.toLowerCase()) ? s.color.toUpperCase() : "";
+  /** One tooltip for the whole bar, fixed to the screen so the bar's edges can't cut it off. */
+  const showTip = (target: EventTarget) => {
+    const el = (target as HTMLElement).closest<HTMLElement>("[data-tip]");
+    if (!el) return setTip(null);
+    const r = el.getBoundingClientRect();
+    setTip({ text: el.dataset.tip!, top: r.bottom + 6, left: Math.max(60, Math.min(r.left + r.width / 2, window.innerWidth - 60)) });
+  };
 
   return (
     <div className="rte__toolbar" role="toolbar" aria-label="Formatting">
-      <Btn label="Undo" disabled={!s.canUndo} onClick={() => chain().undo().run()}>
-        <Icon d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />
-      </Btn>
-      <Btn label="Redo" disabled={!s.canRedo} onClick={() => chain().redo().run()}>
-        <Icon d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3" />
-      </Btn>
-      <Sep />
-      <select className="rte__select" aria-label="Text style" value={s.block} onChange={(e) => setBlock(e.target.value)}>
-        <option value="p">Paragraph</option>
-        <option value="h2">Heading</option>
-        <option value="h3">Subheading</option>
-        <option value="h4">Small heading</option>
-      </select>
-      <Sep />
-      <Btn label="Bold" active={s.bold} onClick={() => chain().toggleBold().run()}>
-        <b>B</b>
-      </Btn>
-      <Btn label="Italic" active={s.italic} onClick={() => chain().toggleItalic().run()}>
-        <i>I</i>
-      </Btn>
-      <Btn label="Underline" active={s.underline} onClick={() => chain().toggleUnderline().run()}>
-        <u>U</u>
-      </Btn>
-      <Btn label="Strikethrough" active={s.strike} onClick={() => chain().toggleStrike().run()}>
-        <s>S</s>
-      </Btn>
-      <Btn label="Highlight" active={s.highlight} onClick={() => chain().toggleHighlight().run()}>
-        <Icon d="m9 11-6 6v3h9l3-3M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
-      </Btn>
-      <select
-        className="rte__select"
-        aria-label="Text colour"
-        value={colourValue}
-        style={{ color: colourValue || undefined }}
-        onChange={(e) => (e.target.value ? chain().setColor(e.target.value).run() : chain().unsetColor().run())}
+      <div
+        className="rte__bar"
+        onPointerOver={(e) => e.pointerType === "mouse" && showTip(e.target)}
+        onPointerLeave={() => setTip(null)}
+        onPointerDown={() => setTip(null)}
+        onFocus={(e) => e.target.matches(":focus-visible") && showTip(e.target)}
+        onBlur={() => setTip(null)}
+        onScroll={() => setTip(null)}
       >
-        {TEXT_COLOURS.map((c) => (
-          <option key={c.label} value={c.value.toUpperCase()} style={{ color: c.value || undefined }}>
-            {c.label === "Default" ? "Colour" : c.label}
-          </option>
-        ))}
-      </select>
-      <Btn label="Subscript" active={s.sub} onClick={() => chain().toggleSubscript().run()}>
-        <span>
-          x<sub>2</sub>
-        </span>
-      </Btn>
-      <Btn label="Superscript" active={s.sup} onClick={() => chain().toggleSuperscript().run()}>
-        <span>
-          x<sup>2</sup>
-        </span>
-      </Btn>
-      <Sep />
-      <Btn label="Align left" active={s.left} onClick={() => chain().setTextAlign("left").run()}>
-        <Icon d="M4 6h16M4 12h10M4 18h14" />
-      </Btn>
-      <Btn label="Align centre" active={s.center} onClick={() => chain().setTextAlign("center").run()}>
-        <Icon d="M4 6h16M7 12h10M5 18h14" />
-      </Btn>
-      <Btn label="Align right" active={s.right} onClick={() => chain().setTextAlign("right").run()}>
-        <Icon d="M4 6h16M10 12h10M6 18h14" />
-      </Btn>
-      <Btn label="Justify" active={s.justify} onClick={() => chain().setTextAlign("justify").run()}>
-        <Icon d="M4 6h16M4 12h16M4 18h16" />
-      </Btn>
-      <Sep />
-      <Btn label="Bulleted list" active={s.bullet} onClick={() => chain().toggleBulletList().run()}>
-        <Icon d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />
-      </Btn>
-      <Btn label="Numbered list" active={s.ordered} onClick={() => chain().toggleOrderedList().run()}>
-        <Icon d="M10 6h10M10 12h10M10 18h10M4 5h1v4M4 9h2M4 15h2l-2 3h2" />
-      </Btn>
-      <Btn label="Quote or shloka" active={s.quote} onClick={() => chain().toggleBlockquote().run()}>
-        <Icon d="M7 7h4v4H8v3M14 7h4v4h-3v3" />
-      </Btn>
-      <Btn label="Divider" onClick={() => chain().setHorizontalRule().run()}>
-        <Icon d="M4 12h16" />
-      </Btn>
-      <Sep />
-      <Btn label="Link" active={s.link} onClick={setLink}>
-        <Icon d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
-      </Btn>
-      {onPickImage && (
-        <Btn label="Image" onClick={() => void addImage()}>
-          <Icon d="M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15.5 9.5h.01" />
+        <Btn label="Undo" disabled={!s.canUndo} onClick={() => chain().undo().run()}>
+          <Icon d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" />
         </Btn>
+        <Btn label="Redo" disabled={!s.canRedo} onClick={() => chain().redo().run()}>
+          <Icon d="m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3" />
+        </Btn>
+        <Sep />
+        <select className="rte__select" aria-label="Text style" data-tip="Text style" value={s.block} onChange={(e) => setBlock(e.target.value)}>
+          <option value="p">Paragraph</option>
+          <option value="h2">Heading</option>
+          <option value="h3">Subheading</option>
+          <option value="h4">Small heading</option>
+        </select>
+        <Sep />
+        <Btn label="Bold" active={s.bold} onClick={() => chain().toggleBold().run()}>
+          <b>B</b>
+        </Btn>
+        <Btn label="Italic" active={s.italic} onClick={() => chain().toggleItalic().run()}>
+          <i>I</i>
+        </Btn>
+        <Btn label="Underline" active={s.underline} onClick={() => chain().toggleUnderline().run()}>
+          <u>U</u>
+        </Btn>
+        <Menu label="More text styles" active={s.strike || s.highlight || s.sub || s.sup || Boolean(s.color)} button={<span className="rte__aa">Aa</span>}>
+          <Item label="Strikethrough" active={s.strike} onClick={() => chain().toggleStrike().run()} icon={<s>S</s>} />
+          <Item label="Highlight" active={s.highlight} onClick={() => chain().toggleHighlight().run()} icon={<Icon d="m9 11-6 6v3h9l3-3M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />} />
+          <Item
+            label="Subscript"
+            active={s.sub}
+            onClick={() => chain().toggleSubscript().run()}
+            icon={
+              <span>
+                x<sub>2</sub>
+              </span>
+            }
+          />
+          <Item
+            label="Superscript"
+            active={s.sup}
+            onClick={() => chain().toggleSuperscript().run()}
+            icon={
+              <span>
+                x<sup>2</sup>
+              </span>
+            }
+          />
+          <div className="rte__menu-label">Text colour</div>
+          {TEXT_COLOURS.map((c) => (
+            <Item
+              key={c.label}
+              label={c.label}
+              active={s.color.toLowerCase() === c.value.toLowerCase()}
+              onClick={() => (c.value ? chain().setColor(c.value).run() : chain().unsetColor().run())}
+              icon={<span className="rte__swatch" style={{ background: c.value || "var(--a-text)" }} />}
+            />
+          ))}
+          <div className="rte__menu-line" />
+          <Item label="Clear formatting" onClick={() => chain().unsetAllMarks().clearNodes().run()} icon={<Icon d="M6 6h12M12 6l-3 12M4 20 20 4" />} />
+        </Menu>
+        <Sep />
+        <Menu label="Text alignment" active={s.align.value !== "left"} button={<Icon d={s.align.icon} />}>
+          {TEXT_ALIGNMENTS.map((a) => (
+            <Item key={a.value} label={a.label} active={s.align.value === a.value} onClick={() => chain().setTextAlign(a.value).run()} icon={<Icon d={a.icon} />} />
+          ))}
+        </Menu>
+        <Menu label="Lists" active={s.bullet || s.ordered} button={<Icon d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />}>
+          <Item label="Bulleted list" active={s.bullet} onClick={() => chain().toggleBulletList().run()} icon={<Icon d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />} />
+          <Item label="Numbered list" active={s.ordered} onClick={() => chain().toggleOrderedList().run()} icon={<Icon d="M10 6h10M10 12h10M10 18h10M4 5h1v4M4 9h2M4 15h2l-2 3h2" />} />
+        </Menu>
+        <Sep />
+        <Btn label="Link" active={s.link} onClick={setLink}>
+          <Icon d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+        </Btn>
+        {onPickImage && (
+          <Btn label="Image" onClick={() => void addImage()}>
+            <Icon d="M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15.5 9.5h.01" />
+          </Btn>
+        )}
+        <Menu label="Insert audio, video, tables and layouts" button={<span className="rte__insert">Insert</span>}>
+          {onUploadAudio && <Item label="Audio" disabled={Boolean(uploading)} onClick={() => audioInput.current?.click()} icon={<Icon d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />} />}
+          {onUploadVideo && <Item label="Upload video" disabled={Boolean(uploading)} onClick={() => videoInput.current?.click()} icon={<Icon d="M4 5h16v14H4zM4 9h16M4 15h16M9 5v4M15 5v4M9 15v4M15 15v4" />} />}
+          <Item label="YouTube video" onClick={addVideo} icon={<Icon d="M3 7.5a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3zM10 9l5 3-5 3z" />} />
+          <div className="rte__menu-line" />
+          <Item label="Table" onClick={() => chain().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} icon={<Icon d="M4 5h16v14H4zM4 10h16M4 15h16M10 5v14" />} />
+          <Item label="Two columns" disabled={Boolean(s.layout)} onClick={() => chain().insertColumns().run()} icon={<Icon d="M4 5h7v14H4zM13 5h7v14h-7z" />} />
+          <Item label="One column with border" disabled={Boolean(s.layout)} onClick={() => chain().wrapIn("layoutBox").run()} icon={<Icon d="M4 5h16v14H4zM8 10h8M8 14h8" />} />
+          <Item label="Carousel" disabled={s.slides > 0 || Boolean(s.layout) || s.table} onClick={() => chain().insertCarousel().run()} icon={<Icon d="M7 5h10v14H7zM3 8v8M21 8v8" />} />
+          <div className="rte__menu-line" />
+          <Item label="Quote or shloka" active={s.quote} onClick={() => chain().toggleBlockquote().run()} icon={<Icon d="M7 7h4v4H8v3M14 7h4v4h-3v3" />} />
+          <Item label="Divider" onClick={() => chain().setHorizontalRule().run()} icon={<Icon d="M4 12h16" />} />
+        </Menu>
+      </div>
+
+      {onUploadAudio && <FileInput ref={audioInput} label="Audio file" accept=".mp3,.m4a,.wav,audio/mpeg,audio/mp4,audio/x-m4a,audio/wav" onFile={(f) => void addMedia("audio", f)} />}
+      {onUploadVideo && <FileInput ref={videoInput} label="Video file" accept=".mp4,.webm,video/mp4,video/webm" onFile={(f) => void addMedia("video", f)} />}
+
+      {tip && (
+        <div className="rte__tip" role="tooltip" style={{ top: tip.top, left: tip.left }}>
+          {tip.text}
+        </div>
       )}
-      {onUploadAudio && (
-        <UploadBtn label="Audio" accept=".mp3,.m4a,.wav,audio/mpeg,audio/mp4,audio/x-m4a,audio/wav" disabled={Boolean(uploading)} onFile={(f) => void addMedia("audio", f)}>
-          <Icon d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-        </UploadBtn>
-      )}
-      {onUploadVideo && (
-        <UploadBtn label="Upload video" accept=".mp4,.webm,video/mp4,video/webm" disabled={Boolean(uploading)} onFile={(f) => void addMedia("video", f)}>
-          <Icon d="M4 5h16v14H4zM4 9h16M4 15h16M9 5v4M15 5v4M9 15v4M15 15v4" />
-        </UploadBtn>
-      )}
-      <Btn label="YouTube video" onClick={addVideo}>
-        <Icon d="M3 7.5a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3zM10 9l5 3-5 3z" />
-      </Btn>
-      <Btn label="Table" active={s.table} onClick={() => chain().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
-        <Icon d="M4 5h16v14H4zM4 10h16M4 15h16M10 5v14" />
-      </Btn>
-      <Btn label="Two columns" active={s.layout === "2 columns"} disabled={Boolean(s.layout)} onClick={() => chain().insertColumns().run()}>
-        <Icon d="M4 5h7v14H4zM13 5h7v14h-7z" />
-      </Btn>
-      <Btn label="One column with border" active={s.layout === "Bordered box"} disabled={Boolean(s.layout)} onClick={() => chain().wrapIn("layoutBox").run()}>
-        <Icon d="M4 5h16v14H4zM8 10h8M8 14h8" />
-      </Btn>
-      <Btn label="Carousel" active={s.slides > 0} disabled={s.slides > 0 || Boolean(s.layout) || s.table} onClick={() => chain().insertCarousel().run()}>
-        <Icon d="M7 5h10v14H7zM3 8v8M21 8v8" />
-      </Btn>
-      <Btn label="Clear formatting" onClick={() => chain().unsetAllMarks().clearNodes().run()}>
-        <Icon d="M6 6h12M12 6l-3 12M4 20 20 4" />
-      </Btn>
 
       {s.table && (
         <div className="rte__table-tools" role="group" aria-label="Table">
@@ -425,7 +435,7 @@ function Btn({
       type="button"
       className="rte__btn"
       aria-label={label}
-      title={label}
+      data-tip={label}
       aria-pressed={active ?? undefined}
       disabled={disabled}
       onMouseDown={(e) => e.preventDefault()}
@@ -436,38 +446,113 @@ function Btn({
   );
 }
 
-function UploadBtn({
-  label,
-  accept,
-  disabled,
-  onFile,
-  children,
-}: {
-  label: string;
-  accept: string;
-  disabled: boolean;
-  onFile: (file: File) => void;
-  children: ReactNode;
-}) {
-  const input = useRef<HTMLInputElement>(null);
+/** Kept outside the Insert menu, which closes before the browser's file picker returns. */
+function FileInput({ ref, label, accept, onFile }: { ref: React.Ref<HTMLInputElement>; label: string; accept: string; onFile: (file: File) => void }) {
+  return (
+    <input
+      ref={ref}
+      type="file"
+      accept={accept}
+      aria-label={label}
+      hidden
+      onChange={(e) => {
+        const f = e.target.files?.[0];
+        if (f) onFile(f);
+        e.target.value = "";
+      }}
+    />
+  );
+}
+
+/** A dropdown fixed to the screen, so the scrolling toolbar can't cut it off. */
+function Menu({ label, active, button, children }: { label: string; active?: boolean; button: ReactNode; children: ReactNode }) {
+  const [at, setAt] = useState<{ top: number; left: number; maxHeight: number } | null>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!at) return;
+    const close = () => setAt(null);
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node;
+      if (!menu.current?.contains(target) && !trigger.current?.contains(target)) close();
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      close();
+      trigger.current?.focus();
+    };
+    const onScroll = (e: Event) => {
+      if (!menu.current?.contains(e.target as Node)) close();
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", close);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [at]);
+
+  const toggle = () => {
+    const r = trigger.current!.getBoundingClientRect();
+    setAt(at ? null : { top: r.bottom + 4, left: Math.max(8, Math.min(r.left, window.innerWidth - MENU_WIDTH - 8)), maxHeight: window.innerHeight - r.bottom - 12 });
+  };
+
   return (
     <>
-      <Btn label={label} disabled={disabled} onClick={() => input.current?.click()}>
-        {children}
-      </Btn>
-      <input
-        ref={input}
-        type="file"
-        accept={accept}
-        aria-label={`${label} file`}
-        hidden
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) onFile(f);
-          e.target.value = "";
-        }}
-      />
+      <button
+        ref={trigger}
+        type="button"
+        className="rte__btn rte__btn--menu"
+        aria-label={label}
+        aria-haspopup="menu"
+        aria-expanded={Boolean(at)}
+        data-tip={label}
+        data-active={active || undefined}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={toggle}
+      >
+        {button}
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {at && (
+        <div
+          ref={menu}
+          className="rte__menu"
+          role="menu"
+          aria-label={label}
+          style={{ ...at, width: MENU_WIDTH }}
+          onClick={(e) => {
+            if ((e.target as HTMLElement).closest("button")) setAt(null);
+          }}
+        >
+          {children}
+        </div>
+      )}
     </>
+  );
+}
+
+function Item({ label, icon, active, disabled, onClick }: { label: string; icon: ReactNode; active?: boolean; disabled?: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className="rte__item"
+      role={active === undefined ? "menuitem" : "menuitemcheckbox"}
+      aria-checked={active}
+      disabled={disabled}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+    >
+      <span className="rte__item-icon">{icon}</span>
+      {label}
+    </button>
   );
 }
 

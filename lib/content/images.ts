@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { UPLOAD_DIR } from "./store";
+import { bucket, firebaseEnabled } from "@/lib/firebase-admin";
+import { listUploads } from "./uploads";
 
 /** Decorative assets that make no sense as content images. */
 const DECORATIVE = new Set(["divider.svg", "toran.svg", "jaal.svg", "mandala-gold.svg", "mandala-light.svg", "logo.png"]);
@@ -15,22 +16,18 @@ export const VIDEO_NAME = /^[a-f0-9-]{36}\.(mp4|webm)$/;
 
 /** Images the admin can pick from: built-in illustrations plus uploads. */
 export async function listImages(): Promise<string[]> {
-  const builtIn = (await fs.readdir(path.join(process.cwd(), "public/images")))
+  const builtIn = (await builtInImages())
     .filter((f) => !DECORATIVE.has(f))
     .sort()
     .map((f) => `/images/${f}`);
-  let uploads: string[] = [];
-  try {
-    const entries = await Promise.all(
-      (await fs.readdir(UPLOAD_DIR))
-        .filter((f) => UPLOAD_NAME.test(f))
-        .map(async (f) => ({ f, t: (await fs.stat(path.join(UPLOAD_DIR, f))).mtimeMs })),
-    );
-    uploads = entries.sort((a, b) => b.t - a.t).map((e) => `/uploads/${e.f}`);
-  } catch {
-    /* no uploads yet */
-  }
+  const uploads = (await listUploads()).filter((f) => UPLOAD_NAME.test(f)).map((f) => `/uploads/${f}`);
   return [...uploads, ...builtIn];
+}
+
+async function builtInImages(): Promise<string[]> {
+  if (!firebaseEnabled) return fs.readdir(path.join(process.cwd(), "public/images"));
+  const [files] = await bucket().getFiles({ prefix: "images/" });
+  return files.map((f) => f.name.slice("images/".length));
 }
 
 export function isAllowedImagePath(src: string): boolean {

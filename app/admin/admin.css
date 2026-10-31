@@ -828,6 +828,72 @@ textarea.adm-input {
   font-size: 11px;
   color: var(--a-accent);
 }
+/* Rows can be dragged or moved with the arrows that appear on hover. */
+.adm-tree__line {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.adm-tree__move {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  display: none;
+  align-items: center;
+  gap: 1px;
+  padding: 1px 2px;
+  transform: translateY(-50%);
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(59, 29, 18, 0.2);
+}
+.adm-tree__line:hover > .adm-tree__move,
+.adm-tree__line:focus-within > .adm-tree__move,
+.adm-tree__row:hover > .adm-tree__move,
+.adm-tree__row:focus-within > .adm-tree__move {
+  display: inline-flex;
+}
+@media (hover: none) {
+  .adm-tree__move {
+    position: static;
+    display: inline-flex;
+    transform: none;
+  }
+}
+.adm-tree__row {
+  position: relative;
+}
+.adm-tree__move button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--a-text);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.adm-tree__move button:hover:not(:disabled) {
+  background: var(--a-sand);
+}
+.adm-tree__move button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.adm-tree__grip {
+  padding: 0 2px;
+  color: var(--a-muted);
+  font-size: 12px;
+  cursor: grab;
+}
+[data-drop="before"] {
+  box-shadow: 0 -2px 0 var(--a-accent);
+}
+[data-drop="after"] {
+  box-shadow: 0 2px 0 var(--a-accent);
+}
 .adm-tree__item {
   display: flex;
   align-items: center;
@@ -1071,9 +1137,120 @@ textarea.adm-input {
 .rte__btn:hover {
   background: var(--a-sand);
 }
-.rte__btn[aria-pressed="true"] {
+.rte__btn[aria-pressed="true"],
+.rte__btn[data-active] {
   background: var(--a-maroon);
   color: #fff;
+}
+.rte__btn--menu {
+  gap: 3px;
+  padding: 0 6px;
+}
+.rte__btn[aria-expanded="true"] {
+  background: var(--a-sand);
+  color: var(--a-text);
+}
+.rte__aa {
+  font-weight: 700;
+}
+.rte__insert {
+  font-size: 13px;
+  font-weight: 700;
+}
+/* Always one line: on a narrow screen it scrolls sideways instead of wrapping. */
+.rte__bar {
+  flex-basis: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rte__bar::-webkit-scrollbar {
+  display: none;
+}
+.rte__bar > * {
+  flex: none;
+}
+.rte__menu {
+  position: fixed;
+  z-index: 60;
+  padding: 6px;
+  overflow-y: auto;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(59, 29, 18, 0.18);
+}
+.rte__item {
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--a-text);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.rte__item:hover:not(:disabled) {
+  background: var(--a-sand);
+}
+.rte__item[aria-checked="true"] {
+  background: var(--a-maroon);
+  color: #fff;
+}
+.rte__item:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.rte__item-icon {
+  flex: none;
+  width: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.rte__swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+.rte__menu-label {
+  padding: 8px 8px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+.rte__menu-line {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--a-line);
+}
+.rte__tip {
+  position: fixed;
+  z-index: 61;
+  padding: 4px 9px;
+  transform: translateX(-50%);
+  border-radius: 6px;
+  background: var(--a-maroon);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: rte-tip 0.12s ease 0.15s backwards;
+}
+@keyframes rte-tip {
+  from {
+    opacity: 0;
+  }
 }
 .rte__btn:disabled {
   opacity: 0.35;
@@ -1082,7 +1259,8 @@ textarea.adm-input {
 }
 .rte__sep {
   width: 1px;
-  margin: 6px 4px;
+  height: 22px;
+  margin: 0 4px;
   background: var(--a-line);
 }
 .rte__content {
@@ -1304,6 +1482,28 @@ textarea.adm-input {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   gap: 10px;
+}
+.picker__cell {
+  position: relative;
+}
+.picker__delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--a-danger);
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.picker__delete:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 .picker__option {
   aspect-ratio: 1;

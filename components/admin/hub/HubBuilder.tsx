@@ -16,6 +16,12 @@ export type Selection =
 
 export type Update = (fn: (draft: Hub) => void) => void;
 
+type Kind = "section" | "chapter" | "quiz";
+type Dragged = { kind: Kind; id: string; s: string };
+
+const listOf = (hub: Hub, kind: Kind, section: string): { id: string }[] =>
+  kind === "section" ? hub.sections : hub.sections.find((x) => x.id === section)![kind === "chapter" ? "chapters" : "quizzes"];
+
 function firstSelection(hub: Hub): Selection {
   const s = hub.sections[0];
   if (!s) return { k: "cats" };
@@ -32,6 +38,8 @@ export default function HubBuilder({ initial, hasDraft, library }: { initial: Hu
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const flow = useSaveFlow(hasDraft);
+  const [dragged, setDragged] = useState<Dragged | null>(null);
+  const [drop, setDrop] = useState<{ id: string; after: boolean } | null>(null);
 
   const update: Update = (fn) => {
     setHub((prev) => {
@@ -111,6 +119,84 @@ export default function HubBuilder({ initial, hasDraft, library }: { initial: Hu
     select({ k: "quiz", s: s.id, id: qz.id });
   };
 
+  /** Moves an item beside `target`, or to the end of the list. Chapters and quizzes can change section. */
+  const move = (item: Dragged, toSection: string, target: string | null, after: boolean) => {
+    update((d) => {
+      const from = listOf(d, item.kind, item.s);
+      const to = listOf(d, item.kind, toSection);
+      const [moved] = from.splice(from.findIndex((x) => x.id === item.id), 1);
+      const at = to.findIndex((x) => x.id === target);
+      to.splice(at < 0 ? to.length : at + (after ? 1 : 0), 0, moved);
+    });
+    if (item.kind === "section" || item.s === toSection) return;
+    setSel((cur) => ((cur.k === "chapter" || cur.k === "quiz") && cur.id === item.id ? { ...cur, s: toSection } : cur));
+    setOpen((o) => ({ ...o, [toSection]: true }));
+  };
+
+  const endDrag = () => {
+    setDragged(null);
+    setDrop(null);
+  };
+
+  /** Props that let a row be dragged, and dropped on by another of the same kind. */
+  const sortable = (kind: Kind, id: string, s: string) => ({
+    draggable: true,
+    "data-drop": drop?.id === id ? (drop.after ? "after" : "before") : undefined,
+    onDragStart: (e: React.DragEvent) => {
+      e.stopPropagation();
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", id);
+      setDragged({ kind, id, s });
+    },
+    onDragEnd: endDrag,
+    onDragOver: (e: React.DragEvent<HTMLElement>) => {
+      if (dragged?.kind !== kind) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (dragged.id === id) return setDrop(null);
+      const r = e.currentTarget.getBoundingClientRect();
+      setDrop({ id, after: e.clientY > r.top + r.height / 2 });
+    },
+    onDrop: (e: React.DragEvent) => {
+      if (dragged?.kind !== kind) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (dragged.id !== id) move(dragged, s, id, drop?.after ?? false);
+      endDrag();
+    },
+  });
+
+  /** The "Add" button under a list takes drops too, so an empty list can be filled. */
+  const listEnd = (kind: Kind, s: string) => ({
+    onDragOver: (e: React.DragEvent) => {
+      if (dragged?.kind === kind) e.preventDefault();
+    },
+    onDrop: (e: React.DragEvent) => {
+      if (dragged?.kind !== kind) return;
+      e.preventDefault();
+      move(dragged, s, null, false);
+      endDrag();
+    },
+  });
+
+  /** Up and down buttons do the same without a mouse. `list` is what's on show, so filters are respected. */
+  const arrows = (kind: Kind, list: { id: string }[], i: number, s: string, label: string) => {
+    const item = { kind, id: list[i].id, s };
+    return (
+      <span className="adm-tree__move">
+        <span aria-hidden="true" className="adm-tree__grip">
+          ⠿
+        </span>
+        <button type="button" aria-label={`Move ${label} up`} title="Move up" disabled={i === 0} onClick={() => move(item, s, list[i - 1].id, false)}>
+          ↑
+        </button>
+        <button type="button" aria-label={`Move ${label} down`} title="Move down" disabled={i === list.length - 1} onClick={() => move(item, s, list[i + 1].id, true)}>
+          ↓
+        </button>
+      </span>
+    );
+  };
+
   const section = sel.k !== "cats" ? hub.sections.find((s) => s.id === sel.s) : undefined;
   const chapter = sel.k === "chapter" ? section?.chapters.find((c) => c.id === sel.id) : undefined;
   const quiz = sel.k === "quiz" ? section?.quizzes.find((x) => x.id === sel.id) : undefined;
@@ -166,11 +252,11 @@ export default function HubBuilder({ initial, hasDraft, library }: { initial: Hu
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {shown.map((s) => {
+            {shown.map((s, si) => {
               const isOpen = Boolean(open[s.id]) || Boolean(q);
               const active = sel.k !== "cats" && sel.s === s.id;
               return (
-                <div key={s.id} className="adm-tree__sec" data-active={active}>
+                <div key={s.id} className="adm-tree__sec" data-active={active} {...sortable("section", s.id, s.id)}>
                   <div className="adm-tree__row">
                     <button
                       type="button"
@@ -196,43 +282,48 @@ export default function HubBuilder({ initial, hasDraft, library }: { initial: Hu
                         {s.status === "draft" && " · Draft"}
                       </span>
                     </button>
+                    {arrows("section", shown, si, s.id, s.title || "section")}
                   </div>
                   {isOpen && (
                     <div className="adm-tree__kids">
                       <span className="adm-overline">Chapters</span>
                       {s.chapters.map((c, i) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          className="adm-tree__item"
-                          aria-current={sel.k === "chapter" && sel.id === c.id ? "true" : undefined}
-                          onClick={() => select({ k: "chapter", s: s.id, id: c.id })}
-                        >
-                          <span className="adm-tree__num">{i + 1}</span>
-                          <span style={{ flex: 1 }}>{c.title || "Untitled chapter"}</span>
-                          {c.status === "draft" && <span className="adm-tree__draft">Draft</span>}
-                        </button>
+                        <div key={c.id} className="adm-tree__line" {...sortable("chapter", c.id, s.id)}>
+                          <button
+                            type="button"
+                            className="adm-tree__item"
+                            aria-current={sel.k === "chapter" && sel.id === c.id ? "true" : undefined}
+                            onClick={() => select({ k: "chapter", s: s.id, id: c.id })}
+                          >
+                            <span className="adm-tree__num">{i + 1}</span>
+                            <span style={{ flex: 1 }}>{c.title || "Untitled chapter"}</span>
+                            {c.status === "draft" && <span className="adm-tree__draft">Draft</span>}
+                          </button>
+                          {arrows("chapter", s.chapters, i, s.id, c.title || "chapter")}
+                        </div>
                       ))}
-                      <button type="button" className="adm-link-btn" onClick={() => addChapter(s)}>
+                      <button type="button" className="adm-link-btn" onClick={() => addChapter(s)} {...listEnd("chapter", s.id)}>
                         + Add chapter
                       </button>
                       <span className="adm-overline">Quizzes</span>
-                      {s.quizzes.map((x) => (
-                        <button
-                          key={x.id}
-                          type="button"
-                          className="adm-tree__item"
-                          aria-current={sel.k === "quiz" && sel.id === x.id ? "true" : undefined}
-                          onClick={() => select({ k: "quiz", s: s.id, id: x.id })}
-                        >
-                          <QuizIcon />
-                          <span style={{ flex: 1 }}>{x.title || "Untitled quiz"}</span>
-                          <span className={x.status === "draft" ? "adm-tree__draft" : "adm-tree__meta"}>
-                            {x.status === "draft" ? "Draft" : `${x.questions.length} Q`}
-                          </span>
-                        </button>
+                      {s.quizzes.map((x, i) => (
+                        <div key={x.id} className="adm-tree__line" {...sortable("quiz", x.id, s.id)}>
+                          <button
+                            type="button"
+                            className="adm-tree__item"
+                            aria-current={sel.k === "quiz" && sel.id === x.id ? "true" : undefined}
+                            onClick={() => select({ k: "quiz", s: s.id, id: x.id })}
+                          >
+                            <QuizIcon />
+                            <span style={{ flex: 1 }}>{x.title || "Untitled quiz"}</span>
+                            <span className={x.status === "draft" ? "adm-tree__draft" : "adm-tree__meta"}>
+                              {x.status === "draft" ? "Draft" : `${x.questions.length} Q`}
+                            </span>
+                          </button>
+                          {arrows("quiz", s.quizzes, i, s.id, x.title || "quiz")}
+                        </div>
                       ))}
-                      <button type="button" className="adm-link-btn" onClick={() => addQuiz(s)}>
+                      <button type="button" className="adm-link-btn" onClick={() => addQuiz(s)} {...listEnd("quiz", s.id)}>
                         + Add quiz
                       </button>
                     </div>

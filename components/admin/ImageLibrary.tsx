@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useRef, useState, useTransition } from "react";
-import { uploadImage } from "@/app/admin/actions";
+import { deleteImage, uploadImage } from "@/app/admin/actions";
 
 type Pick = (current?: string) => Promise<string | null>;
 
@@ -46,6 +46,16 @@ export function ImageLibraryProvider({ library, children }: { library: string[];
     });
   };
 
+  const remove = (src: string) => {
+    if (!window.confirm("Delete this image permanently? This can’t be undone.")) return;
+    setError(null);
+    startUpload(async () => {
+      const res = await deleteImage(src);
+      if (!res.ok) return setError(res.error);
+      setImages((prev) => prev.filter((i) => i !== src));
+    });
+  };
+
   return (
     <PickContext.Provider value={pick}>
       {children}
@@ -82,16 +92,16 @@ export function ImageLibraryProvider({ library, children }: { library: string[];
         </p>
         <div className="picker__grid">
           {images.map((src) => (
-            <button
-              key={src}
-              type="button"
-              className="picker__option"
-              aria-pressed={current === src}
-              aria-label={src.split("/").pop()}
-              onClick={() => finish(src)}
-            >
-              <img src={src} alt="" />
-            </button>
+            <div key={src} className="picker__cell">
+              <button type="button" className="picker__option" aria-pressed={current === src} aria-label={src.split("/").pop()} onClick={() => finish(src)}>
+                <img src={src} alt="" />
+              </button>
+              {src.startsWith("/uploads/") && (
+                <button type="button" className="picker__delete" aria-label="Delete image" title="Delete image" disabled={uploading} onClick={() => remove(src)}>
+                  ×
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </dialog>

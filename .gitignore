@@ -44,6 +44,10 @@ next-env.d.ts
 # CMS content and uploads (runtime data)
 /data
 
+# firebase server key (never commit)
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+
 # firebase cli
 .firebase/
 firebase-debug.log

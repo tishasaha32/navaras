@@ -1,12 +1,12 @@
 "use server";
 
 import { randomUUID } from "crypto";
-import { promises as fs } from "fs";
-import path from "path";
 import { revalidatePath } from "next/cache";
 import { MAX_AUDIO_MB, MAX_VIDEO_MB, type Hub } from "@/lib/content/hub";
 import { PAGE_SCHEMAS, type PageKey } from "@/lib/content/pages";
-import { UPLOAD_DIR, publish, saveDraft } from "@/lib/content/store";
+import { UPLOAD_NAME } from "@/lib/content/images";
+import { deleteUnusedUpload, publish, saveDraft } from "@/lib/content/store";
+import { saveUpload } from "@/lib/content/uploads";
 import { parseHub, parsePageDoc } from "@/lib/content/validate";
 
 export type ActionResult = { ok: true; url?: string } | { ok: false; error: string };
@@ -53,11 +53,31 @@ const MAX_UPLOAD = 5 * 1024 * 1024;
 const MAX_AUDIO_UPLOAD = MAX_AUDIO_MB * 1024 * 1024;
 const MAX_VIDEO_UPLOAD = MAX_VIDEO_MB * 1024 * 1024;
 
+const CONTENT_TYPES: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  webp: "image/webp",
+  gif: "image/gif",
+  mp3: "audio/mpeg",
+  m4a: "audio/mp4",
+  wav: "audio/wav",
+  mp4: "video/mp4",
+  webm: "video/webm",
+};
+
 async function store(buf: Buffer, ext: string): Promise<ActionResult> {
   const name = `${randomUUID()}.${ext}`;
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  await fs.writeFile(path.join(UPLOAD_DIR, name), buf);
+  await saveUpload(name, buf, CONTENT_TYPES[ext]);
   return { ok: true, url: `/uploads/${name}` };
+}
+
+/** Removes an uploaded image from the library, unless a page, chapter or draft still shows it. */
+export async function deleteImage(url: string): Promise<ActionResult> {
+  await requireAdmin();
+  const name = url.replace(/^\/uploads\//, "");
+  if (!UPLOAD_NAME.test(name)) return { ok: false, error: "Only uploaded images can be deleted." };
+  if (!(await deleteUnusedUpload(name))) return { ok: false, error: "This image is still used on the site. Remove it from there and publish first." };
+  return { ok: true };
 }
 
 function sniffImage(buf: Buffer): "png" | "jpg" | "webp" | "gif" | null {
