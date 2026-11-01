@@ -1634,6 +1634,20 @@ button {
   background: var(--loader) center / 56px no-repeat;
   pointer-events: none;
 }
+.video-player__failed {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--maroon-deep);
+  color: var(--ivory);
+  font-size: 15px;
+  text-align: center;
+}
 .video-player__big {
   position: absolute;
   top: 50%;

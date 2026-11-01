@@ -9,6 +9,8 @@ export type StoredFile = { size: number; open: (start: number, end: number) => R
 
 const toWeb = (stream: Readable) => Readable.toWeb(stream) as ReadableStream;
 
+const UPLOAD_LINK_HOURS = 24;
+
 /** Uploaded files, in Firebase Storage under uploads/, or on disk until content moves there. */
 export async function saveUpload(name: string, data: Buffer, contentType: string) {
   if (firebaseEnabled) return void (await bucket().file(`uploads/${name}`).save(data, { contentType, resumable: false }));
@@ -19,6 +21,13 @@ export async function saveUpload(name: string, data: Buffer, contentType: string
 export async function deleteUpload(name: string) {
   if (firebaseEnabled) return void (await bucket().file(`uploads/${name}`).delete({ ignoreNotFound: true }));
   await fs.rm(path.join(UPLOAD_DIR, name), { force: true });
+}
+
+/** A direct Storage link, so browsers stream audio and video without going through this server. */
+export async function uploadLink(name: string): Promise<string | null> {
+  if (!firebaseEnabled) return null;
+  const [url] = await bucket().file(`uploads/${name}`).getSignedUrl({ version: "v4", action: "read", expires: Date.now() + UPLOAD_LINK_HOURS * 3_600_000 });
+  return url;
 }
 
 export async function readStorageFile(objectPath: string): Promise<StoredFile | null> {

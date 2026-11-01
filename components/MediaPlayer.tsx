@@ -16,6 +16,7 @@ function useMedia<T extends HTMLMediaElement>() {
   const [duration, setDuration] = useState(0);
   const [shape, setShape] = useState<number>();
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   const readDetails = () => {
     const m = ref.current;
@@ -34,6 +35,7 @@ function useMedia<T extends HTMLMediaElement>() {
     duration,
     shape,
     loading,
+    failed,
     media: {
       ref,
       onLoadedMetadata: readDetails,
@@ -41,7 +43,10 @@ function useMedia<T extends HTMLMediaElement>() {
       onWaiting: () => setLoading(true),
       onPlaying: () => setLoading(false),
       onCanPlay: () => setLoading(false),
-      onError: () => setLoading(false),
+      onError: () => {
+        setLoading(false);
+        setFailed(true);
+      },
       onTimeUpdate: (e: React.SyntheticEvent<T>) => setTime(e.currentTarget.currentTime),
       onPlay: () => setPlaying(true),
       onPause: () => setPlaying(false),
@@ -49,8 +54,15 @@ function useMedia<T extends HTMLMediaElement>() {
     toggle: () => {
       const m = ref.current;
       if (!m) return;
+      if (m.error) m.load();
+      setFailed(false);
       if (m.paused) m.play().catch(console.error);
       else m.pause();
+    },
+    retry: () => {
+      setFailed(false);
+      setLoading(true);
+      ref.current?.load();
     },
     seek: (t: number) => {
       if (ref.current) ref.current.currentTime = t;
@@ -117,6 +129,22 @@ export function VideoPlayer({ src, title, size, align, ratio, children }: VideoP
   const shape = w ? w / h : p.shape;
   const frame = useRef<HTMLDivElement>(null);
   const [muted, setMuted] = useState(false);
+  /** Lessons can hold many videos: each one starts loading only as it nears the screen. */
+  const [near, setNear] = useState(false);
+
+  useEffect(() => {
+    if (!frame.current) return;
+    const watcher = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setNear(true);
+        watcher.disconnect();
+      },
+      { rootMargin: "400px" },
+    );
+    watcher.observe(frame.current);
+    return () => watcher.disconnect();
+  }, []);
 
   const toggleMuted = () => {
     const video = p.media.ref.current;
@@ -141,8 +169,15 @@ export function VideoPlayer({ src, title, size, align, ratio, children }: VideoP
       aria-label={title || "Video"}
     >
       <div className="video-player__screen">
-        <video src={src} title={title} preload="metadata" playsInline onClick={p.toggle} onVolumeChange={(e) => setMuted(e.currentTarget.muted)} {...p.media} />
-        {p.loading ? (
+        <video src={near ? src : undefined} title={title} preload="metadata" playsInline onClick={p.toggle} onVolumeChange={(e) => setMuted(e.currentTarget.muted)} {...p.media} />
+        {p.failed ? (
+          <div className="video-player__failed" role="alert">
+            <span>This video couldn’t load.</span>
+            <button type="button" className="btn btn--saffron btn--sm" onClick={p.retry}>
+              Try again
+            </button>
+          </div>
+        ) : p.loading ? (
           <span className="video-player__loader" role="status" aria-label="Loading video" />
         ) : (
           !p.playing && (
