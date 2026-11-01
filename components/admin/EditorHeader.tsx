@@ -84,9 +84,14 @@ export default function EditorHeader({
     const el = head.current;
     if (!el) return;
     const publish = () => document.documentElement.style.setProperty("--adm-head", `${el.offsetHeight}px`);
+    publish();
     const observer = new ResizeObserver(publish);
     observer.observe(el);
-    return () => observer.disconnect();
+    window.addEventListener("resize", publish);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", publish);
+    };
   }, []);
 
   return (
