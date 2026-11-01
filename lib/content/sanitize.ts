@@ -29,6 +29,7 @@ export function sanitizeRichText(html: string): string {
     },
     allowedStyles: {
       "*": { "text-align": ALIGN, color: COLOUR },
+      div: { "--split": [/^[2-8][05]$/] },
       img: { width: PERCENT },
       video: { width: PERCENT },
       iframe: { width: PERCENT },

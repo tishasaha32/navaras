@@ -260,6 +260,9 @@ export const Column = Node.create({
   },
 });
 
+/** Share of the row the first column can take, in percent (kept in step with the sanitiser's allow-list). */
+const SPLIT = { min: 20, max: 80, step: 5, even: 50 };
+
 /** Two columns side by side; they stack when the lesson is narrow (app/globals.css). */
 export const Columns = Node.create({
   name: "layoutColumns",
@@ -267,12 +270,79 @@ export const Columns = Node.create({
   content: "layoutColumn{2}",
   isolating: true,
 
+  addAttributes() {
+    return {
+      split: {
+        default: null,
+        parseHTML: (el) => Number(el.style.getPropertyValue("--split")) || null,
+        renderHTML: (attrs) => (attrs.split ? { style: `--split: ${attrs.split}` } : {}),
+      },
+    };
+  },
+
   parseHTML() {
     return [{ tag: 'div[data-layout="columns"]' }];
   },
 
   renderHTML({ HTMLAttributes }) {
     return ["div", mergeAttributes(HTMLAttributes, { "data-layout": "columns" }), 0];
+  },
+
+  /** Adds a bar between the columns. The split only saves on release, so one drag is one undo. */
+  addNodeView() {
+    return ({ node, getPos, editor }) => {
+      let current = node;
+      const dom = document.createElement("div");
+      dom.className = "rte-columns";
+      const contentDOM = dom.appendChild(document.createElement("div"));
+      contentDOM.setAttribute("data-layout", "columns");
+      const handle = dom.appendChild(document.createElement("button"));
+      handle.type = "button";
+      handle.className = "rte-columns__handle";
+      handle.contentEditable = "false";
+      handle.title = handle.ariaLabel = "Drag to resize the columns";
+
+      const show = (split: number | null) => (split ? dom.style.setProperty("--split", String(split)) : dom.style.removeProperty("--split"));
+      show(node.attrs.split);
+
+      handle.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        const { left, width } = contentDOM.getBoundingClientRect();
+        const saved = current.attrs.split ?? SPLIT.even;
+        let split = saved;
+        const move = (m: PointerEvent) => {
+          const share = Math.round(((m.clientX - left) / width) * (100 / SPLIT.step)) * SPLIT.step;
+          split = Math.min(SPLIT.max, Math.max(SPLIT.min, share));
+          show(split);
+          handle.dataset.label = `${split}% / ${100 - split}%`;
+        };
+        handle.setPointerCapture(e.pointerId);
+        handle.addEventListener("pointermove", move);
+        handle.addEventListener(
+          "lostpointercapture",
+          () => {
+            handle.removeEventListener("pointermove", move);
+            delete handle.dataset.label;
+            const pos = getPos();
+            if (split !== saved && pos !== undefined) editor.view.dispatch(editor.state.tr.setNodeAttribute(pos, "split", split));
+          },
+          { once: true },
+        );
+      });
+
+      return {
+        dom,
+        contentDOM,
+        stopEvent: (e) => e.target === handle,
+        ignoreMutation: (m) => !contentDOM.contains(m.target),
+        update: (updated) => {
+          if (updated.type !== current.type) return false;
+          current = updated;
+          show(updated.attrs.split);
+          return true;
+        },
+      };
+    };
   },
 
   addCommands() {

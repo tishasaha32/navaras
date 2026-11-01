@@ -348,6 +348,7 @@ function Toolbar({ editor, onPickImage, onUploadAudio, onUploadVideo }: { editor
         <div className="rte__table-tools" role="group" aria-label="Layout">
           <span>{s.layout}:</span>
           <TextBtn onClick={() => chain().unsetLayout().run()}>Remove layout, keep content</TextBtn>
+          {s.layout === "2 columns" && <span className="rte__table-hint">Drag the bar between the columns to resize them</span>}
         </div>
       )}
 
