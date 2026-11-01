@@ -355,6 +355,20 @@
   padding-top: 28px;
   padding-bottom: 80px;
 }
+.adm-draft-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  background: var(--a-sand);
+  font-size: 14px;
+  font-weight: 600;
+}
 .adm-main {
   flex: 999 1 720px;
   min-width: 0;

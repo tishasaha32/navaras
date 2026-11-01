@@ -147,6 +147,11 @@ export function lessonText(body: string): string {
  * Only what visitors may see: published sections, chapters and quizzes with questions.
  * Admins previewing drafts (`includeDrafts`) also see draft items.
  */
+/** Draft sections holding published chapters or quizzes, which visitors therefore can't reach. */
+export function sectionsHidingContent(hub: Hub): HubSection[] {
+  return hub.sections.filter((s) => s.status === "draft" && [...s.chapters, ...s.quizzes].some((x) => x.status === "published"));
+}
+
 export function publicHub(hub: Hub, includeDrafts = false): Hub {
   const shown = (x: { status: Status }) => includeDrafts || x.status === "published";
   const sections = hub.sections

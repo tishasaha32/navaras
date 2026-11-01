@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { saveHub } from "@/app/admin/actions";
-import { HUB_PATH, itemHref, type Hub, type HubSection } from "@/lib/content/hub";
+import { HUB_PATH, itemHref, sectionsHidingContent, type Hub, type HubSection } from "@/lib/content/hub";
 import EditorHeader, { useSaveFlow } from "../EditorHeader";
 import { ChevronRightIcon, PlusIcon, QuizIcon } from "../icons";
 import { ImageLibraryProvider } from "../ImageLibrary";
@@ -55,15 +55,31 @@ export default function HubBuilder({ initial, hasDraft, library }: { initial: Hu
     if (next.k !== "cats") setOpen((o) => ({ ...o, [next.s]: true }));
   };
 
-  const save = (mode: "draft" | "publish") =>
+  /** Publishing a chapter inside a draft section would otherwise succeed with nothing showing on the site. */
+  const withHiddenSections = (): Hub => {
+    const hidden = sectionsHidingContent(hub);
+    if (!hidden.length) return hub;
+    const names = hidden.map((s) => `“${s.title}”`).join(", ");
+    const publishThem = window.confirm(
+      `${names} ${hidden.length === 1 ? "is" : "are"} still set to Draft, so visitors won’t see the published chapters inside.\n\nPublish ${hidden.length === 1 ? "this section" : "these sections"} too?`,
+    );
+    if (!publishThem) return hub;
+    const ids = new Set(hidden.map((s) => s.id));
+    return { ...hub, sections: hub.sections.map((s) => (ids.has(s.id) ? { ...s, status: "published" } : s)) };
+  };
+
+  const save = (mode: "draft" | "publish") => {
+    const toSave = mode === "publish" ? withHiddenSections() : hub;
+    if (toSave !== hub) setHub(toSave);
     flow.run(
       mode,
-      (m) => saveHub(hub, m),
+      (m) => saveHub(toSave, m),
       (res) => {
         // Pick up slugs computed by the server (and questions cleaned up on publish).
         if ("hub" in res && res.hub) setHub(res.hub as Hub);
       },
     );
+  };
 
   const counts = useMemo(() => {
     let chapters = 0;
@@ -348,6 +364,14 @@ export default function HubBuilder({ initial, hasDraft, library }: { initial: Hu
         </aside>
 
         <main className="adm-main">
+          {section?.status === "draft" && (sel.k === "chapter" || sel.k === "quiz") && (
+            <p role="status" className="adm-draft-note">
+              This section is a draft, so visitors can’t see anything inside it, even if it’s published.
+              <button type="button" className="adm-link-btn" onClick={() => select({ k: "section", s: section.id })}>
+                Open section
+              </button>
+            </p>
+          )}
           {sel.k === "cats" && <CategoriesEditor hub={hub} update={update} />}
           {sel.k === "section" && section && (
             <SectionEditor

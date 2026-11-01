@@ -22,8 +22,8 @@ import { deleteUpload } from "./uploads";
  */
 const CONTENT_FILE = path.join(DATA_DIR, "site.json");
 
-/** How long visitors' pages reuse one read of Firestore; each read costs about 60 documents. */
-const CACHE_MS = 5 * 60 * 1000;
+/** How long visitors' pages reuse one read of Firestore, for servers that didn't make the last save themselves. */
+const CACHE_MS = 60 * 1000;
 
 export type Site = { pages: Record<PageKey, PageDoc>; hub: Hub };
 type StoreFile = { version: 2; live: { hub: Hub }; drafts: { hub?: Hub } };
@@ -62,14 +62,31 @@ const readFromFirebase = async () => normalize(await readContent());
 
 const readFresh = () => (firebaseEnabled ? readFromFirebase() : readFromDisk());
 
-let cached: { file: Promise<StoreFile>; at: number } | null = null;
+/** On globalThis because each page gets its own copy of this module, and a save in the admin must clear what the site's pages hold. */
+const shared = globalThis as typeof globalThis & {
+  contentCache?: { file: StoreFile; at: number; refreshing?: boolean } | null;
+  contentSaves?: number;
+};
 
-function readCached() {
+async function fetchForCache() {
+  const saves = shared.contentSaves;
+  const file = await readFromFirebase();
+  // A read that began before a save may be missing it, so it mustn't replace what comes after.
+  if (shared.contentSaves === saves) shared.contentCache = { file, at: Date.now() };
+  return file;
+}
+
+/** Visitors never wait on an expired copy: it's served while a fresher one loads, and stays if that read fails. */
+async function readCached() {
   if (!firebaseEnabled) return readFromDisk();
-  if (!cached || Date.now() - cached.at > CACHE_MS) {
-    const file = readFromFirebase();
-    file.catch(() => (cached = null));
-    cached = { file, at: Date.now() };
+  const cached = shared.contentCache;
+  if (!cached) return fetchForCache();
+  if (Date.now() - cached.at > CACHE_MS && !cached.refreshing) {
+    cached.refreshing = true;
+    fetchForCache().catch((err) => {
+      console.error(err);
+      cached.refreshing = false;
+    });
   }
   return cached.file;
 }
@@ -102,7 +119,8 @@ function change(apply: () => Promise<void>): Promise<void> {
   const run = queue.then(async () => {
     const before = uploadsUsed(await readFresh());
     await apply();
-    cached = null;
+    shared.contentCache = null;
+    shared.contentSaves = (shared.contentSaves ?? 0) + 1;
     const after = uploadsUsed(await readFresh());
     await Promise.all([...before].filter((name) => !after.has(name)).map((name) => deleteUpload(name).catch(console.error)));
   });

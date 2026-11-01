@@ -22,7 +22,8 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
   const shown = hub.sections.filter((s) => filter === "all" || s.cat === filter);
   const usedCats = hub.categories.filter((c) => hub.sections.some((s) => s.cat === c.id));
   const pages = Math.max(1, Math.ceil(shown.length / PER_PAGE));
-  const firstShown = (page - 1) * PER_PAGE;
+  const current = Math.min(page, pages);
+  const firstShown = (current - 1) * PER_PAGE;
   const onPage = shown.slice(firstShown, firstShown + PER_PAGE);
 
   const goToPage = (next: number) => {
@@ -234,15 +235,15 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
 
           {pages > 1 && (
             <nav aria-label="Pages of sections" className="pagination">
-              <button type="button" className="pagination__step" disabled={page === 1} onClick={() => goToPage(page - 1)}>
+              <button type="button" className="pagination__step" disabled={current === 1} onClick={() => goToPage(current - 1)}>
                 ← Previous
               </button>
               {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
-                <button key={n} type="button" className="pagination__num" aria-label={`Page ${n}`} aria-current={n === page ? "page" : undefined} onClick={() => goToPage(n)}>
+                <button key={n} type="button" className="pagination__num" aria-label={`Page ${n}`} aria-current={n === current ? "page" : undefined} onClick={() => goToPage(n)}>
                   {n}
                 </button>
               ))}
-              <button type="button" className="pagination__step" disabled={page === pages} onClick={() => goToPage(page + 1)}>
+              <button type="button" className="pagination__step" disabled={current === pages} onClick={() => goToPage(current + 1)}>
                 Next →
               </button>
             </nav>
