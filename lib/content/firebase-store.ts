@@ -16,6 +16,9 @@ type Version = "live" | "draft";
 
 export type Stored = { live: { hub?: Hub }; drafts: { hub?: Hub } };
 
+/** The copies a save replaces; `draft: null` removes the draft. */
+export type HubChange = { live?: Hub; draft?: Hub | null };
+
 /** Firestore takes at most 500 writes at a time. */
 const BATCH = 400;
 
@@ -29,8 +32,8 @@ function fields<T>(doc: QueryDocumentSnapshot) {
 
 async function readHub(db: Firestore, version: Version): Promise<Hub | undefined> {
   const ref = root(db, version);
-  if (!(await ref.get()).data()?.hub) return undefined;
-  const [categories, sections] = await Promise.all([ref.collection("categories").orderBy("order").get(), ref.collection("sections").orderBy("order").get()]);
+  const [flag, categories, sections] = await Promise.all([ref.get(), ref.collection("categories").orderBy("order").get(), ref.collection("sections").orderBy("order").get()]);
+  if (!flag.data()?.hub) return undefined;
   return {
     categories: categories.docs.map((d) => fields<Category>(d)),
     sections: await Promise.all(
@@ -48,29 +51,26 @@ export async function readContent(): Promise<Stored> {
   return { live: { hub: live }, drafts: { hub: draft } };
 }
 
-async function writeHub(db: Firestore, version: Version, before: Hub | undefined, after: Hub | null) {
+function hubWrites(db: Firestore, version: Version, before: Hub | undefined, after: Hub | null) {
   const { sets, deletes } = hubChanges(before ?? null, after);
   const ref = root(db, version);
-  const writes = [
+  return [
     ...sets.map(([path, doc]) => (b: WriteBatch) => b.set(db.doc(`${ref.path}/${path}`), doc)),
     ...deletes.map((path) => (b: WriteBatch) => b.delete(db.doc(`${ref.path}/${path}`))),
+    ...(Boolean(before) === Boolean(after) ? [] : [(b: WriteBatch) => b.set(ref, { hub: Boolean(after) })]),
+  ];
+}
+
+/** Writes only what differs from `stored`, the raw content just read. Publishing passes `draft: null`, so anything deleted is gone from both. */
+export async function writeContent(stored: Stored, { live, draft }: HubChange) {
+  const db = firestore();
+  const writes = [
+    ...(live ? hubWrites(db, "live", stored.live.hub, live) : []),
+    ...(draft === undefined ? [] : hubWrites(db, "draft", stored.drafts.hub, draft)),
   ];
   for (let i = 0; i < writes.length; i += BATCH) {
     const batch = db.batch();
     writes.slice(i, i + BATCH).forEach((write) => write(batch));
     await batch.commit();
   }
-  await ref.set({ hub: Boolean(after) });
-}
-
-export async function saveDraftHub(hub: Hub) {
-  const db = firestore();
-  await writeHub(db, "draft", await readHub(db, "draft"), hub);
-}
-
-/** Puts the Hub live and removes its draft, so anything deleted is gone from both. */
-export async function publishHub(hub: Hub) {
-  const db = firestore();
-  await writeHub(db, "live", await readHub(db, "live"), hub);
-  await writeHub(db, "draft", await readHub(db, "draft"), null);
 }

@@ -4,7 +4,7 @@ import { draftMode } from "next/headers";
 import path from "path";
 import { cache } from "react";
 import { firebaseEnabled } from "@/lib/firebase-admin";
-import { publishHub, readContent, saveDraftHub } from "./firebase-store";
+import { readContent, writeContent, type HubChange } from "./firebase-store";
 import { publicHub, upgradeChapters, type Hub } from "./hub";
 import { uploadsUsed } from "./hub-docs";
 import { seedHub } from "./hub-seed";
@@ -24,6 +24,9 @@ const CONTENT_FILE = path.join(DATA_DIR, "site.json");
 
 /** How long visitors' pages reuse one read of Firestore, for servers that didn't make the last save themselves. */
 const CACHE_MS = 60 * 1000;
+
+/** How long the admin can trust the copy its own save left behind. */
+const SAVED_MS = 5 * 1000;
 
 export type Site = { pages: Record<PageKey, PageDoc>; hub: Hub };
 type StoreFile = { version: 2; live: { hub: Hub }; drafts: { hub?: Hub } };
@@ -64,7 +67,7 @@ const readFresh = () => (firebaseEnabled ? readFromFirebase() : readFromDisk());
 
 /** On globalThis because each page gets its own copy of this module, and a save in the admin must clear what the site's pages hold. */
 const shared = globalThis as typeof globalThis & {
-  contentCache?: { file: StoreFile; at: number; refreshing?: boolean } | null;
+  contentCache?: { file: StoreFile; at: number; refreshing?: boolean; saved?: boolean } | null;
   contentSaves?: number;
 };
 
@@ -91,8 +94,14 @@ async function readCached() {
   return cached.file;
 }
 
+/** Next re-renders the admin page after every save, and that shouldn't read back what was just written. */
+async function readCurrent() {
+  const cached = shared.contentCache;
+  return cached?.saved && Date.now() - cached.at < SAVED_MS ? cached.file : readFresh();
+}
+
 const readForVisitors = cache(readCached);
-const readForAdmin = cache(readFresh);
+const readForAdmin = cache(readCurrent);
 
 /** What visitors see — or, while an admin previews (Next draft mode), the saved drafts. */
 export async function getLive(): Promise<Site> {
@@ -114,38 +123,36 @@ export async function getEditableHub(): Promise<{ data: Hub; hasDraft: boolean }
 
 let queue: Promise<unknown> = Promise.resolve();
 
-/** Applies one save in turn, then deletes any uploaded file that save stopped using. */
-function change(apply: () => Promise<void>): Promise<void> {
+/**
+ * Applies one save in turn, then deletes any uploaded file that save stopped using.
+ * Reads once: everything after that is worked out from what the save is writing.
+ */
+function change({ live, draft }: HubChange): Promise<void> {
   const run = queue.then(async () => {
-    const before = uploadsUsed(await readFresh());
-    await apply();
-    shared.contentCache = null;
+    const stored = firebaseEnabled ? await readContent() : null;
+    const before = stored ? normalize(stored) : await readFromDisk();
+    const after: StoreFile = {
+      version: 2,
+      live: { hub: live ?? before.live.hub },
+      drafts: draft === undefined ? before.drafts : draft ? { hub: draft } : {},
+    };
+    if (stored) await writeContent(stored, { live, draft });
+    else await writeToDisk(after);
+    shared.contentCache = { file: after, at: Date.now(), saved: true };
     shared.contentSaves = (shared.contentSaves ?? 0) + 1;
-    const after = uploadsUsed(await readFresh());
-    await Promise.all([...before].filter((name) => !after.has(name)).map((name) => deleteUpload(name).catch(console.error)));
+    const used = uploadsUsed(after);
+    await Promise.all([...uploadsUsed(before)].filter((name) => !used.has(name)).map((name) => deleteUpload(name).catch(console.error)));
   });
   queue = run.catch(() => undefined);
   return run;
 }
 
-async function editFile(edit: (file: StoreFile) => void) {
-  const file = await readFromDisk();
-  edit(file);
-  await writeToDisk(file);
-}
-
 export function saveDraft(hub: Hub) {
-  return change(() => (firebaseEnabled ? saveDraftHub(hub) : editFile((file) => void (file.drafts.hub = hub))));
+  return change({ draft: hub });
 }
 
 export function publish(hub: Hub) {
-  return change(() => {
-    if (firebaseEnabled) return publishHub(hub);
-    return editFile((file) => {
-      file.live.hub = hub;
-      delete file.drafts.hub;
-    });
-  });
+  return change({ live: hub, draft: null });
 }
 
 /** Deletes an uploaded file nothing uses any more. Returns false if something still does. */
