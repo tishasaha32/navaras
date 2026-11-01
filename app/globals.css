@@ -2006,6 +2006,11 @@ button {
   overflow: hidden;
   font-size: 0.95em;
 }
+/* Columns sized in the editor keep their widths where they fit, and narrow together where they don't. */
+.lesson table:has(col[style^="width"]) {
+  max-width: 100%;
+  table-layout: auto;
+}
 .rich th,
 .rich td {
   position: relative;

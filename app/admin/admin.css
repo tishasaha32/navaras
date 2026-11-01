@@ -1250,6 +1250,23 @@ textarea.adm-input {
   background: rgba(184, 50, 90, 0.12);
   pointer-events: none;
 }
+.rte__content .column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  bottom: -1px;
+  width: 4px;
+  background: var(--rose);
+  pointer-events: none;
+}
+.rte__content.resize-cursor,
+.rte__content .resize-cursor {
+  cursor: col-resize;
+}
+.rte__table-hint {
+  margin-left: auto;
+  font-weight: 500;
+}
 
 /* ---------- Image library dialog ---------- */
 .picker__dialog {

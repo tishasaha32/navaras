@@ -23,8 +23,8 @@ export function sanitizeRichText(html: string): string {
       video: ["src", "title", "controls", "playsinline", { name: "preload", values: ["metadata"] }, MEDIA_ALIGN, MEDIA_RATIO],
       div: ["data-youtube-video", { name: "data-layout", values: ["columns", "column", "box", "carousel", "slide"] }, { name: "data-ratio", values: ["16:9", "1:1"] }],
       iframe: ["src", "width", "height", "allowfullscreen", "allow", "title", MEDIA_ALIGN, MEDIA_RATIO],
-      th: ["colspan", "rowspan", "style"],
-      td: ["colspan", "rowspan", "style"],
+      th: ["colspan", "rowspan", "colwidth", "style"],
+      td: ["colspan", "rowspan", "colwidth", "style"],
       "*": ["style"],
     },
     allowedStyles: {

@@ -85,7 +85,7 @@ export default function RichTextEditor({ id, value, onChange, placeholder, inval
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       ResizableImage.configure({ HTMLAttributes: { loading: "lazy" } }),
       ResizableYoutube.configure({ nocookie: true, modestBranding: true, width: 640, height: 360 }),
-      TableKit.configure({ table: { resizable: false } }),
+      TableKit.configure({ table: { resizable: true, cellMinWidth: 60 } }),
       Audio,
       Video,
       Column,
@@ -340,6 +340,7 @@ function Toolbar({ editor, onPickImage, onUploadAudio, onUploadVideo }: { editor
           <TextBtn danger onClick={() => chain().deleteTable().run()}>
             Delete table
           </TextBtn>
+          <span className="rte__table-hint">Drag a column’s edge to resize it</span>
         </div>
       )}
 
