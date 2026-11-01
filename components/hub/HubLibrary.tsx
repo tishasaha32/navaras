@@ -98,9 +98,7 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
                 Continue where you left off
               </span>
               <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                <div className="arch-thumb" style={{ width: 84, height: 104 }}>
-                  {cur.img && <img src={cur.img} alt="" className="cover" />}
-                </div>
+                <div className="hub-continue__img">{cur.img && <img src={cur.img} alt="" className="cover" />}</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
                   <span style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, lineHeight: 1.15 }}>{cur.title}</span>
                   <span className="muted" style={{ fontSize: 14 }}>

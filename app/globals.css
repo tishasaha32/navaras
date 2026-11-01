@@ -1466,7 +1466,7 @@ button {
 }
 .rich h3,
 .rich h4 {
-  margin: 1em 0 0.4em;
+  margin: 1em 0 0.65em;
   line-height: 1.2;
 }
 .rich h3 {
@@ -1485,7 +1485,7 @@ button {
   text-decoration: underline;
 }
 .rich h2 {
-  margin: 1.2em 0 0.4em;
+  margin: 1.2em 0 0.6em;
   font-size: 1.6em;
   line-height: 1.15;
 }
@@ -2133,6 +2133,16 @@ button {
   border: 1px solid var(--line-gold);
   background: var(--sand);
 }
+.hub-continue__img {
+  position: relative;
+  flex: none;
+  width: clamp(120px, 34%, 168px);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--line-gold);
+  border-radius: 12px;
+  background: var(--sand);
+}
 .hub-continue {
   flex: 1 1 380px;
   max-width: 480px;
@@ -2237,7 +2247,7 @@ button {
 }
 .sec-card__media {
   position: relative;
-  height: 200px;
+  aspect-ratio: 16 / 9;
   background: var(--sand);
   overflow: hidden;
 }
@@ -2275,9 +2285,6 @@ button {
   color: var(--rose);
 }
 @media (max-width: 640px) {
-  .sec-card__media {
-    height: 170px;
-  }
   .sec-card__body {
     padding: 16px 18px 18px;
   }

@@ -28,9 +28,10 @@
 .adm a {
   color: var(--a-accent);
 }
-.adm h1,
-.adm h2,
-.adm h3 {
+/* :where keeps this low-priority, so it can't flatten headings inside the lesson editor. */
+:where(.adm) h1,
+:where(.adm) h2,
+:where(.adm) h3 {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 600;
@@ -761,7 +762,7 @@ textarea.adm-input {
   grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: 16px;
 }
-.adm-card h3 {
+.adm-card h3:not(.rich *) {
   font-size: 22px;
 }
 .adm-card__head {
