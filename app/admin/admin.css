@@ -1063,7 +1063,7 @@ textarea.adm-input {
 }
 @media (min-width: 701px) {
   .rte__toolbar {
-    top: 150px;
+    top: var(--adm-head, 0px);
   }
 }
 .rte__select {
@@ -1346,10 +1346,6 @@ textarea.adm-input {
   
   .adm-card {
     padding: 16px;
-  }
-  /* A wrapped toolbar is too tall to pin above the on-screen keyboard. */
-  .rte__toolbar {
-    position: static;
   }
   .rte__btn {
     min-width: 40px;

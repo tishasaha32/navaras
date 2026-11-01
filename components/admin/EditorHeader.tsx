@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import type { ActionResult } from "@/app/admin/actions";
 
 export type EditStatus = "live" | "dirty" | "draft" | "published" | "error";
@@ -77,8 +77,20 @@ export default function EditorHeader({
   onSaveDraft: () => void;
   onPublish: () => void;
 }) {
+  const head = useRef<HTMLDivElement>(null);
+
+  // The header's height changes as it wraps, and the editor toolbar sticks just below it.
+  useEffect(() => {
+    const el = head.current;
+    if (!el) return;
+    const publish = () => document.documentElement.style.setProperty("--adm-head", `${el.offsetHeight}px`);
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="adm-head">
+    <div ref={head} className="adm-head">
       <div className="adm-wrap adm-head__inner">
         <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
           <span className="adm-head__crumb">{crumb}</span>
