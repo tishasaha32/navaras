@@ -2346,6 +2346,10 @@ button {
   gap: 32px;
   align-items: flex-start;
 }
+/* Lessons and quizzes end at their own buttons, with no site footer. */
+body:has(.reader) .site-footer {
+  display: none;
+}
 .reader-aside {
   flex: 1 1 300px;
   max-width: 100%;
