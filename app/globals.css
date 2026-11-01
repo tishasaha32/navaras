@@ -2340,6 +2340,11 @@ button {
     overflow-y: auto;
   }
 }
+.reader-heading {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
 /* Too narrow for a sidebar: it slides in instead, opened from a floating button. */
 .reader-toggle,
 .reader-close {
@@ -2392,6 +2397,10 @@ button {
     visibility: visible;
     /* Visible at once, so focus can move into it as it slides in. */
     transition: transform 0.25s ease;
+  }
+  /* Room for the close button, which only the slide-in panel has. */
+  .reader-heading {
+    padding-right: 36px;
   }
   .reader-close {
     position: absolute;

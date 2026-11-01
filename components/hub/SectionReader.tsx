@@ -111,17 +111,12 @@ export default function SectionReader({ section: s, view, summary, categoryName,
             <button ref={panelClose} type="button" className="reader-close" aria-label="Close chapters and quizzes" onClick={() => setPanelOpen(false)}>
               ×
             </button>
-            <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-              <div className="arch-thumb" style={{ width: 70, height: 88 }}>
-                {s.img && <img src={s.img} alt="" className="cover" />}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                {categoryName && <span className="label">{categoryName}</span>}
-                <span style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, lineHeight: 1.15 }}>{s.title}</span>
-                <span lang="sa" style={{ fontFamily: "var(--font-display)", fontSize: 15, color: "var(--rose)" }}>
-                  {s.dev}
-                </span>
-              </div>
+            <div className="reader-heading">
+              {categoryName && <span className="label">{categoryName}</span>}
+              <span style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, lineHeight: 1.15 }}>{s.title}</span>
+              <span lang="sa" style={{ fontFamily: "var(--font-display)", fontSize: 15, color: "var(--rose)" }}>
+                {s.dev}
+              </span>
             </div>
 
             {learner ? (
