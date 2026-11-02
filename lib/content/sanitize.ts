@@ -18,7 +18,7 @@ export function sanitizeRichText(html: string): string {
     ],
     allowedAttributes: {
       a: ["href", "target", "rel"],
-      img: ["src", "alt", "title", "loading", MEDIA_ALIGN, MEDIA_RATIO],
+      img: ["src", "alt", "title", "loading", "data-original", MEDIA_ALIGN, MEDIA_RATIO],
       audio: ["src", "title", "controls", { name: "preload", values: ["metadata"] }],
       video: ["src", "title", "controls", "playsinline", { name: "preload", values: ["metadata"] }, MEDIA_ALIGN, MEDIA_RATIO],
       div: ["data-youtube-video", { name: "data-layout", values: ["columns", "column", "box", "carousel", "slide"] }, { name: "data-ratio", values: ["16:9", "1:1"] }],
@@ -44,6 +44,10 @@ export function sanitizeRichText(html: string): string {
     allowProtocolRelative: false,
     transformTags: {
       a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer" }),
+      img: (tagName, attribs) => {
+        const { "data-original": original, ...rest } = attribs;
+        return { tagName, attribs: original && isAllowedImagePath(original) ? attribs : rest };
+      },
     },
     exclusiveFilter: (frame) =>
       // Images, audio and video only from the site's own uploads, embeds only from YouTube

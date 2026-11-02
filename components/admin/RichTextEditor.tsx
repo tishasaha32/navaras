@@ -13,6 +13,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { ActionResult } from "@/app/admin/actions";
 import { MAX_AUDIO_MB, MAX_VIDEO_MB } from "@/lib/content/hub";
+import CropDialog from "./CropDialog";
 import { Audio, CAROUSEL_RATIOS, Carousel, CarouselSlide, Column, Columns, LayoutBox, MEDIA_RATIOS, ResizableImage, ResizableYoutube, Video } from "./RichTextBlocks";
 
 type Props = {
@@ -24,6 +25,8 @@ type Props = {
   describedBy?: string;
   /** Opens the image library; resolves with the chosen image path. */
   onPickImage?: () => Promise<string | null>;
+  /** Stores a cropped picture; the toolbar shows the crop button only when this is set. */
+  onUploadImage?: (form: FormData) => Promise<ActionResult>;
   /** Stores an audio file; the toolbar shows the audio button only when this is set. */
   onUploadAudio?: (form: FormData) => Promise<ActionResult>;
   /** Stores a video file; the toolbar shows the upload button only when this is set. */
@@ -61,7 +64,7 @@ export const TEXT_COLOURS = [
  * audio, uploaded and YouTube videos, tables, two-column and bordered blocks, and carousels
  * that can hold any of those. Output is sanitised on save (lib/content/sanitize.ts).
  */
-export default function RichTextEditor({ id, value, onChange, placeholder, invalid, describedBy, onPickImage, onUploadAudio, onUploadVideo }: Props) {
+export default function RichTextEditor({ id, value, onChange, placeholder, invalid, describedBy, onPickImage, onUploadImage, onUploadAudio, onUploadVideo }: Props) {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -111,15 +114,16 @@ export default function RichTextEditor({ id, value, onChange, placeholder, inval
 
   return (
     <div className={`rte${invalid ? " rte--invalid" : ""}`}>
-      {editor ? <Toolbar editor={editor} onPickImage={onPickImage} onUploadAudio={onUploadAudio} onUploadVideo={onUploadVideo} /> : <div className="rte__toolbar" aria-hidden="true" />}
+      {editor ? <Toolbar editor={editor} onPickImage={onPickImage} onUploadImage={onUploadImage} onUploadAudio={onUploadAudio} onUploadVideo={onUploadVideo} /> : <div className="rte__toolbar" aria-hidden="true" />}
       <EditorContent editor={editor} />
       {editor && <Footer editor={editor} />}
     </div>
   );
 }
 
-function Toolbar({ editor, onPickImage, onUploadAudio, onUploadVideo }: { editor: Editor } & Pick<Props, "onPickImage" | "onUploadAudio" | "onUploadVideo">) {
+function Toolbar({ editor, onPickImage, onUploadImage, onUploadAudio, onUploadVideo }: { editor: Editor } & Pick<Props, "onPickImage" | "onUploadImage" | "onUploadAudio" | "onUploadVideo">) {
   const [uploading, setUploading] = useState<"audio" | "video" | null>(null);
+  const [cropping, setCropping] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [tip, setTip] = useState<{ text: string; top: number; left: number } | null>(null);
   const audioInput = useRef<HTMLInputElement>(null);
@@ -152,6 +156,8 @@ function Toolbar({ editor, onPickImage, onUploadAudio, onUploadVideo }: { editor
         mediaAlign: media ? (e.getAttributes(media).align as string) : "",
         mediaSize: media ? (e.getAttributes(media).size as string | null) : null,
         mediaRatio: media ? (e.getAttributes(media).ratio as string | null) : null,
+        imageSrc: media === "image" ? (e.getAttributes("image").src as string) : "",
+        imageOriginal: media === "image" ? (e.getAttributes("image").original as string | null) : null,
         canUndo: e.can().undo(),
         canRedo: e.can().redo(),
       };
@@ -361,6 +367,8 @@ function Toolbar({ editor, onPickImage, onUploadAudio, onUploadVideo }: { editor
             </TextBtn>
           ))}
           {s.mediaSize && <TextBtn onClick={() => chain().updateAttributes(s.media, { size: null }).run()}>Reset size</TextBtn>}
+          {s.imageSrc && onUploadImage && <TextBtn onClick={() => setCropping(s.imageOriginal ?? s.imageSrc)}>Crop</TextBtn>}
+          {s.imageOriginal && <TextBtn onClick={() => chain().updateAttributes("image", { src: s.imageOriginal, original: null }).run()}>Undo crop</TextBtn>}
           <span>Shape:</span>
           <TextBtn active={!s.mediaRatio} onClick={() => chain().updateAttributes(s.media, { ratio: null }).run()}>
             Original
@@ -371,6 +379,19 @@ function Toolbar({ editor, onPickImage, onUploadAudio, onUploadVideo }: { editor
             </TextBtn>
           ))}
         </div>
+      )}
+
+      {cropping && onUploadImage && (
+        <CropDialog
+          src={cropping}
+          onUpload={onUploadImage}
+          onCropped={(src) => {
+            // The crop already sets the picture's shape, so a shape picked earlier would cut it again.
+            chain().updateAttributes("image", { src, original: cropping, ratio: null }).run();
+            setCropping(null);
+          }}
+          onClose={() => setCropping(null)}
+        />
       )}
 
       {s.slides > 0 && (

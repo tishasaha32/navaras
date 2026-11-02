@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { uploadAudio, uploadVideo } from "@/app/admin/actions";
+import { uploadAudio, uploadImage, uploadVideo } from "@/app/admin/actions";
 import { HUB_PATH, QUIZ_TYPES, slugify, type Chapter, type Hub, type HubSection, type Quiz, type Status } from "@/lib/content/hub";
 import RichTextEditor from "../RichTextEditor";
 import { ImageField, usePickImage } from "../ImageLibrary";
@@ -288,6 +288,7 @@ export function ChapterEditor({
             placeholder="Write the lesson: headings, shlokas as quotes, images, audio, columns, tables…"
             onChange={(html) => set("body", html)}
             onPickImage={() => pick()}
+            onUploadImage={uploadImage}
             onUploadAudio={uploadAudio}
             onUploadVideo={uploadVideo}
           />

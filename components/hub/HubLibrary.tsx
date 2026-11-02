@@ -187,7 +187,7 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
                       )}
                     </div>
                     <div className="sec-card__body">
-                      <span style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 10 }}>
+                      <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                         <h3 className="sec-card__title">{s.title}</h3>
                         <span lang="sa" className="sec-card__dev">
                           {s.dev}

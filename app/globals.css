@@ -2019,6 +2019,14 @@ button {
   overflow: hidden;
   font-size: 0.95em;
 }
+/* A table too wide for the lesson scrolls on its own, not the whole page. */
+.table-scroll {
+  margin: 1em 0;
+  overflow-x: auto;
+}
+.table-scroll table {
+  margin: 0;
+}
 /* Columns sized in the editor keep their widths where they fit, and narrow together where they don't. */
 .lesson table:has(col[style^="width"]) {
   max-width: 100%;
@@ -2031,7 +2039,22 @@ button {
   border: 1px solid var(--line);
   vertical-align: top;
   text-align: left;
-  overflow-wrap: anywhere;
+  /* Not `anywhere`, which would let a column narrow until its words split between letters. */
+  overflow-wrap: break-word;
+}
+/* Widths set on a wide screen mean nothing on a phone, so each column takes what its words need. */
+@media (max-width: 540px) {
+  .lesson table,
+  .lesson table:has(col[style^="width"]) {
+    table-layout: auto;
+  }
+  .lesson col {
+    width: auto !important;
+  }
+  .lesson th,
+  .lesson td {
+    padding: 8px;
+  }
 }
 .rich th {
   background: var(--sand);

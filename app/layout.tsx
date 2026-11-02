@@ -6,7 +6,8 @@ import "./globals.css";
 const eczar = Eczar({
   variable: "--font-eczar",
   subsets: ["latin", "devanagari"],
-  weight: ["500", "600", "700"],
+  // Not a list of weights: for those Google sometimes sends links next/font can't read, which stops the whole site building.
+  weight: "variable",
 });
 
 const mukta = Mukta({

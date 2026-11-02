@@ -1349,6 +1349,37 @@ textarea.adm-input {
   gap: 12px;
   margin-bottom: 8px;
 }
+.crop__stage {
+  position: relative;
+  width: fit-content;
+  margin: 12px auto 0;
+  overflow: hidden;
+  user-select: none;
+}
+.crop__stage img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 210px);
+}
+/* The shadow dims everything outside the box; the stage cuts it off at the picture's edge. */
+.crop__box {
+  position: absolute;
+  box-shadow: 0 0 0 9999px rgba(42, 28, 20, 0.6);
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+  cursor: move;
+  touch-action: none;
+}
+.crop__grip {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--a-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  touch-action: none;
+}
 .picker__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));

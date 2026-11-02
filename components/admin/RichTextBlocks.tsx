@@ -166,7 +166,16 @@ function YoutubeView({ node, updateAttributes }: NodeViewProps) {
 /** Pictures from the library, which can be resized, aligned and cropped in place. */
 export const ResizableImage = Image.extend({
   addAttributes() {
-    return { ...this.parent?.(), ...placement };
+    return {
+      ...this.parent?.(),
+      ...placement,
+      // The picture a crop was made from, so it can be undone or redone. Mentioning it here also keeps the file from being deleted as unused.
+      original: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.getAttribute("data-original"),
+        renderHTML: (attrs: Record<string, string | null>) => (attrs.original ? { "data-original": attrs.original } : {}),
+      },
+    };
   },
 
   addNodeView() {
