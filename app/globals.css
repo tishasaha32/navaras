@@ -1797,6 +1797,10 @@ button {
   flex: none;
   margin: 0;
 }
+/* Text beside it that's shorter than the slide sits level with its middle; longer text starts at the top and scrolls. */
+.carousel__slide [data-layout="columns"]:has(> [data-layout="column"] > :is(img, .video-player):only-child) > [data-layout="column"]:not(:has(> :is(img, .video-player):only-child)) {
+  align-self: center;
+}
 .carousel__slide [data-layout="column"] > [data-align="left"]:only-child {
   margin-right: auto;
 }
