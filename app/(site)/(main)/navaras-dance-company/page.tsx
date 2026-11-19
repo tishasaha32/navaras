@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Levels from "@/components/dance/Levels";
 import TrialBooking from "@/components/dance/TrialBooking";
+import { VideoPlayer } from "@/components/MediaPlayer";
 import { PlayButton } from "@/components/Video";
 import { ArchImage, Divider, Highlight, Mandala, SectionHead, Sparkle, Toran, minCol } from "@/components/ui";
 import { section } from "@/lib/content/pages";
@@ -17,6 +18,9 @@ export default async function DanceCompanyPage() {
   const hero = section(doc, "hero");
   const levels = section(doc, "levels");
   const batches = section(doc, "batches");
+  const reviews = section(doc, "reviews");
+  const reviewList = reviews.list("list").filter((r) => r.video);
+  const quoteList = reviews.list("quotes").filter((q) => q.text);
   const trial = section(doc, "trial");
   const portal = section(doc, "portal");
   const hubLink = section(doc, "hubLink");
@@ -47,7 +51,7 @@ export default async function DanceCompanyPage() {
             </div>
             {hero.text("img") && (
               <div style={{ flex: "1 1 460px" }}>
-                <ArchImage src={hero.text("img")} alt="Teacher leading a live online class">
+                <ArchImage src={hero.text("img")} alt="Bharatanatyam dancer in a maroon and gold costume, mid-pose and smiling">
                   <PlayButton url={hero.text("video")} title="Navaras Dance Company class" />
                 </ArchImage>
               </div>
@@ -130,6 +134,47 @@ export default async function DanceCompanyPage() {
         </section>
       )}
 
+      {/* REVIEWS */}
+      {reviews.visible && (reviewList.length > 0 || quoteList.length > 0) && (
+        <section className="section section--maroon" style={{ paddingTop: "clamp(56px, 10vw, 112px)", paddingBottom: "clamp(56px, 10vw, 112px)" }}>
+          <Mandala style={{ right: -340, top: -300, width: 680, height: 680 }} />
+          <div className="container" style={{ position: "relative", display: "flex", flexDirection: "column", gap: "clamp(28px, 6vw, 48px)" }}>
+            <div className="section-head">
+              <p className="eyebrow" style={{ color: "var(--blush)" }}>
+                {reviews.text("eyebrow")}
+              </p>
+              <h2 className="h2" style={{ color: "var(--ivory)" }}>
+                {reviews.text("heading")}
+              </h2>
+              <Divider />
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "clamp(20px, 4vw, 40px)" }}>
+              {reviewList.map((r, i) => (
+                <div key={i} style={{ flex: "0 1 380px", minWidth: 0 }}>
+                  <VideoPlayer src={r.video} title={r.name ? `Review from ${r.name}` : "Student review"} ratio="4:5" />
+                </div>
+              ))}
+            </div>
+            {quoteList.length > 0 && (
+              <div className="review-quotes">
+                {quoteList.map((q, i) => (
+                  <figure key={i} className="review-quote">
+                    <span aria-hidden="true" className="review-quote__mark">
+                      “
+                    </span>
+                    <blockquote>{q.text}</blockquote>
+                    <figcaption>
+                      {q.name && <strong>{q.name}</strong>}
+                      {q.from && <span>{q.from}</span>}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* TRIAL BOOKING */}
       {trial.visible && (
         <section id="trial" className="section section--ivory" style={{ overflow: "hidden", borderTop: "1px solid var(--line)", scrollMarginTop: 80 }}>
@@ -173,18 +218,12 @@ export default async function DanceCompanyPage() {
                     </li>
                   ))}
               </ul>
-              {portal.text("btn") && (
-                <a
-                  href={portal.text("href") || "#"}
-                  className="btn btn--dark"
-                  style={{ alignSelf: "flex-start", minHeight: 52 }}
-                  {...(portal.text("href") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                >
-                  {portal.text("btn")}
-                </a>
-              )}
             </div>
-            {portal.text("img") && (
+            {portal.text("video") ? (
+              <div style={{ flex: "1 1 560px", minWidth: 0 }}>
+                <VideoPlayer src={portal.text("video")} title="A tour of the student portal" />
+              </div>
+            ) : portal.text("img") && (
               <div
                 className="arch-tile"
                 style={{ flex: "1 1 560px", height: 420, borderRadius: 24, boxShadow: "0 0 0 6px var(--ivory), 0 0 0 7px var(--line-gold)" }}

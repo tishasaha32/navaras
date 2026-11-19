@@ -13,4 +13,9 @@ export const IMG = {
   arangetram: "/images/arangetram.svg",
   mudra: "/images/mudra.svg",
   dashboard: "/images/student-dashboard.svg",
+  danceHero: "/images/dance-company-hero-2.jpg",
+  stageFoundation: "/images/stage-foundation.svg",
+  stageIntermediate: "/images/stage-intermediate.svg",
+  stageAdvanced: "/images/stage-advanced.svg",
+  stagePerformance: "/images/stage-performance.svg",
 } as const;

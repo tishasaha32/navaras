@@ -523,6 +523,31 @@ button {
   color: var(--rose);
 }
 
+/* A level's picture, with its numeral resting on the bottom edge. */
+.level-art {
+  position: relative;
+  width: min(200px, 72%);
+  margin-bottom: 26px;
+}
+.level-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.level-art .numeral {
+  position: absolute;
+  left: 50%;
+  bottom: -26px;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 56px;
+  font-size: 24px;
+  background: var(--ivory);
+}
+
 .banner {
   position: relative;
   overflow: hidden;
@@ -2961,4 +2986,46 @@ body:has(.reader) .site-footer {
   .ml-current {
     padding: 22px;
   }
+}
+
+/* ---------- Written reviews (Dance Company) ---------- */
+
+.review-quotes {
+  columns: 3 280px;
+  column-gap: 20px;
+}
+.review-quote {
+  break-inside: avoid;
+  margin: 0 0 20px;
+  padding: 26px 26px 22px;
+  border-radius: 18px;
+  background: rgb(255 251 243 / 0.06);
+  border: 1px solid rgb(242 196 109 / 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.review-quote__mark {
+  font-family: var(--font-display);
+  font-size: 54px;
+  line-height: 0.6;
+  height: 22px;
+  color: var(--gold-soft);
+}
+.review-quote blockquote {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ivory);
+}
+.review-quote figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--blush);
+}
+.review-quote figcaption strong {
+  font-size: 15px;
+  color: var(--gold-soft);
 }
