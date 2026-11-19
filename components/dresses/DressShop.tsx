@@ -5,136 +5,44 @@ import { PlayButton } from "@/components/Video";
 import { Divider, minCol } from "@/components/ui";
 import type { ListItem } from "@/lib/content/pages";
 
-const SWATCHES: Record<string, string> = {
-  Red: "#A8261B",
-  Pink: "#B8325A",
-  Gold: "#E89A2C",
-  Green: "#4F7A3A",
-  Blue: "#276C9C",
-  Maroon: "#5E1A26",
-};
-
 const NUMERALS = ["१", "२", "३", "४", "५", "६", "७", "८"];
 
-type Catalogue = { occasions: string[]; sizes: string[]; items: ListItem[] } | null;
+type Catalogue = { categories: string[]; items: ListItem[] } | null;
 type Custom = { heading: string; steps: ListItem[]; video: string; chart: string; book: string } | null;
+type Tab = "rent" | "custom";
+type Part = { label: string; catalogue: NonNullable<Catalogue>; noun: readonly [string, string] };
 
-const sizesOf = (s: string) =>
-  s
-    .split(/[,/]/)
-    .map((x) => x.trim().toUpperCase())
-    .filter(Boolean);
-
-export default function DressShop({ hero, catalogue, custom }: { hero: React.ReactNode; catalogue: Catalogue; custom: Custom }) {
-  const [tab, setTab] = useState<"rent" | "custom">(catalogue ? "rent" : "custom");
-  const occasions = catalogue?.occasions ?? [];
-  const [occ, setOcc] = useState(occasions[0] ?? "");
-  const [size, setSize] = useState("");
-  const [colour, setColour] = useState<string | null>(null);
-  const tabs = catalogue && custom;
-
-  const products = (catalogue?.items ?? []).filter(
-    (c) => (!occ || c.occasion === occ) && (!size || sizesOf(c.size ?? "").includes(size)) && (!colour || c.colour === colour),
-  );
+export default function DressShop({ hero, catalogue, jewellery, custom }: { hero: React.ReactNode; catalogue: Catalogue; jewellery: Catalogue; custom: Custom }) {
+  /** Rental holds the dresses and the jewellery, each with its own categories. */
+  const parts: Part[] = [];
+  if (catalogue) parts.push({ label: "Dresses", catalogue, noun: ["costume", "costumes"] });
+  if (jewellery) parts.push({ label: "Jewellery", catalogue: jewellery, noun: ["piece", "pieces"] });
+  const tabs = (
+    [
+      ["rent", "Rental", parts.length > 0],
+      ["custom", "Custom stitching", Boolean(custom)],
+    ] as const
+  ).filter(([, , shown]) => shown);
+  const [tab, setTab] = useState<Tab>(tabs[0]?.[0] ?? "custom");
 
   return (
     <>
-      <section className="hero-section" style={{ paddingBottom: tabs ? 0 : undefined }}>
+      <section className="hero-section" style={{ paddingBottom: tabs.length > 1 ? 0 : undefined }}>
         {hero}
-        {tabs && (
-          <div className="container" role="tablist" aria-label="Shop" style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 48 }}>
-            <button type="button" role="tab" aria-selected={tab === "rent"} className="shop-tab" onClick={() => setTab("rent")}>
-              Rental
-            </button>
-            <button type="button" role="tab" aria-selected={tab === "custom"} className="shop-tab" onClick={() => setTab("custom")}>
-              Custom stitching
-            </button>
+        {tabs.length > 1 && (
+          <div className="container" role="tablist" aria-label="Shop" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginTop: 48 }}>
+            {tabs.map(([id, label]) => (
+              <button key={id} type="button" role="tab" aria-selected={tab === id} className="shop-tab" onClick={() => setTab(id)}>
+                {label}
+              </button>
+            ))}
           </div>
         )}
       </section>
 
-      {catalogue && tab === "rent" && (
-        <section role="tabpanel" aria-label="Rental" className="section section--ivory" style={{ padding: "clamp(32px, 8vw, 64px) clamp(16px, 5vw, 32px) clamp(56px, 10vw, 112px)", borderTop: "1px solid var(--line-gold)" }}>
-          <div className="container" style={{ display: "flex", flexWrap: "wrap", gap: "clamp(28px, 6vw, 48px)" }}>
-            <aside className="filters">
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <span className="label">Occasion</span>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {occasions.map((o) => (
-                    <button
-                      key={o}
-                      type="button"
-                      className="chip chip--rose"
-                      style={{ fontWeight: 600, padding: "0 16px" }}
-                      aria-pressed={occ === o}
-                      onClick={() => setOcc(o)}
-                    >
-                      {o}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {catalogue.sizes.length > 0 && (
-                <label className="field field--on-ivory filters__field">
-                  <span className="label">Size</span>
-                  <select value={size} onChange={(e) => setSize(e.target.value)}>
-                    <option value="">Any size</option>
-                    {catalogue.sizes.map((s) => (
-                      <option key={s}>{s}</option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <span className="label">Colour</span>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                  {Object.entries(SWATCHES).map(([label, color]) => (
-                    <button
-                      key={label}
-                      type="button"
-                      aria-label={label}
-                      aria-pressed={colour === label}
-                      className="swatch"
-                      style={{ background: color }}
-                      onClick={() => setColour((c) => (c === label ? null : label))}
-                    />
-                  ))}
-                </div>
-              </div>
-            </aside>
+      {parts.length > 0 && tab === "rent" && <RentalBrowser parts={parts} />}
 
-            <div style={{ flex: "999 1 560px", minWidth: 0, display: "flex", flexDirection: "column", gap: 24 }}>
-              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-                <h2 style={{ fontSize: 32 }}>{occ ? `${occ} costumes` : "Costumes"}</h2>
-                <span className="muted" aria-live="polite" style={{ fontSize: 14 }}>
-                  Showing {products.length} {products.length === 1 ? "costume" : "costumes"}
-                </span>
-              </div>
-              <div className="grid-fill" style={minCol(220, { gap: 24 })}>
-                {products.length === 0 && <p className="muted">No costumes match these filters yet.</p>}
-                {products.map((p, i) => {
-                  const available = p.status === "Available";
-                  return (
-                    <div key={i} className="product">
-                      <div className="product__media" style={{ background: i % 2 ? "var(--sand-2)" : "var(--sand)" }}>
-                        {p.img && <img src={p.img} alt={p.name || `${p.occasion} costume`} className="cover" />}
-                      </div>
-                      <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18 }}>{p.name || `${p.occasion} costume`}</span>
-                      <span className="muted" style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 14 }}>
-                        <span>{[p.price, p.price && p.period].filter(Boolean).join(" ") || "Ask for price"}</span>
-                        <span style={{ color: available ? "var(--green)" : "var(--rose)", fontWeight: 700 }}>{p.status}</span>
-                      </span>
-                      {p.size && <span className="muted" style={{ fontSize: 13 }}>Sizes: {p.size}</span>}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {custom && (tab === "custom" || !catalogue) && (
+      {custom && tab === "custom" && (
         <section role="tabpanel" aria-label="Custom stitching" className="section section--ivory" style={{ padding: "clamp(32px, 8vw, 64px) clamp(16px, 5vw, 32px) clamp(56px, 10vw, 112px)", borderTop: "1px solid var(--line-gold)" }}>
           <div className="container" style={{ display: "flex", flexDirection: "column", gap: 44 }}>
             <div className="section-head">
@@ -180,5 +88,95 @@ export default function DressShop({ hero, catalogue, custom }: { hero: React.Rea
         </section>
       )}
     </>
+  );
+}
+
+/**
+ * The rental catalogues, with their filters beside them: a switch between dresses and jewellery,
+ * then that part's categories. The filters stay in view while the pieces scroll past.
+ */
+function RentalBrowser({ parts }: { parts: Part[] }) {
+  const [partIndex, setPartIndex] = useState(0);
+  const { label, catalogue, noun } = parts[partIndex] ?? parts[0];
+  const { categories } = catalogue;
+  const [chosen, setChosen] = useState<Record<string, string>>({});
+  const category = chosen[label] ?? categories[0] ?? "";
+  const setCategory = (c: string) => setChosen((prev) => ({ ...prev, [label]: c }));
+  const products = catalogue.items.filter((c) => !category || c.category === category);
+  const fallback = noun[0][0].toUpperCase() + noun[0].slice(1);
+
+  return (
+    <section role="tabpanel" aria-label="Rental" className="section section--ivory" style={{ padding: "clamp(32px, 8vw, 64px) clamp(16px, 5vw, 32px) clamp(56px, 10vw, 112px)", borderTop: "1px solid var(--line-gold)" }}>
+      <div className="container" style={{ display: "flex", flexWrap: "wrap", gap: "clamp(28px, 6vw, 48px)" }}>
+        <aside className="filters">
+          {parts.length > 1 && (
+            <div className="rental-switch" role="group" aria-label="Rent">
+              {parts.map((p, i) => (
+                <button key={p.label} type="button" aria-pressed={i === partIndex} onClick={() => setPartIndex(i)}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <span className="label">Category</span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {categories.map((c) => (
+                <button key={c} type="button" className="chip chip--rose" style={{ fontWeight: 600, padding: "0 16px" }} aria-pressed={category === c} onClick={() => setCategory(c)}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <div style={{ flex: "999 1 560px", minWidth: 0, display: "flex", flexDirection: "column", gap: 24 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+            <h2 style={{ fontSize: 32 }}>{category || label}</h2>
+            <span className="muted" aria-live="polite" style={{ fontSize: 14 }}>
+              Showing {products.length} {products.length === 1 ? noun[0] : noun[1]}
+            </span>
+          </div>
+          <div className="grid-fill" style={minCol(220, { gap: 24 })}>
+            {products.length === 0 && (
+              <p className="muted" style={{ gridColumn: "1 / -1" }}>
+                No {noun[1]} in this category yet. Ask us what’s available.
+              </p>
+            )}
+            {products.map((p, i) => {
+              const available = p.status === "Available";
+              return (
+                <div key={i} className="product">
+                  <div className="product__media product__media--photo" style={{ background: i % 2 ? "var(--sand-2)" : "var(--sand)" }}>
+                    {p.img && (
+                      <>
+                        <img src={p.img} alt="" aria-hidden="true" className="product__backdrop" loading="lazy" />
+                        <img src={p.img} alt={p.name || p.category || fallback} className="product__photo" loading="lazy" />
+                      </>
+                    )}
+                    {p.code && <span className="product__code">{p.code}</span>}
+                  </div>
+                  <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 18 }}>{p.name || p.category || fallback}</span>
+                  <span className="muted" style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 14 }}>
+                    <span>
+                      {p.price ? (
+                        <>
+                          Rent <strong style={{ color: "var(--ink)" }}>{p.price}</strong> {p.period}
+                        </>
+                      ) : (
+                        "Ask for price"
+                      )}
+                    </span>
+                    {p.status && <span style={{ color: available ? "var(--green)" : "var(--rose)", fontWeight: 700 }}>{p.status}</span>}
+                  </span>
+                  {p.sale && <span className="muted" style={{ fontSize: 13 }}>Buy: {p.sale}</span>}
+                  {p.size && <span className="muted" style={{ fontSize: 13 }}>Sizes: {p.size}</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

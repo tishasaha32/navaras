@@ -14,6 +14,7 @@ export default async function DressesPage() {
   const doc = (await getLive()).pages.dresses;
   const hero = section(doc, "hero");
   const catalogue = section(doc, "catalogue");
+  const jewellery = section(doc, "jewellery");
   const custom = section(doc, "custom");
   const arangetram = section(doc, "arangetram");
   const policies = section(doc, "policies");
@@ -50,13 +51,16 @@ export default async function DressesPage() {
         catalogue={
           catalogue.visible
             ? {
-                occasions: catalogue.list("occasions").map((o) => o.label).filter(Boolean),
-                sizes: catalogue
-                  .text("sizes")
-                  .split(",")
-                  .map((s) => s.trim().toUpperCase())
-                  .filter(Boolean),
+                categories: catalogue.list("categories").map((c) => c.label).filter(Boolean),
                 items: catalogue.list("items"),
+              }
+            : null
+        }
+        jewellery={
+          jewellery.visible
+            ? {
+                categories: jewellery.list("categories").map((c) => c.label).filter(Boolean),
+                items: jewellery.list("items"),
               }
             : null
         }

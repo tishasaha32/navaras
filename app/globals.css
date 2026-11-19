@@ -1392,26 +1392,38 @@ button {
   background: var(--cream);
   border: 1px solid var(--line);
 }
-.filters__field {
-  gap: 8px;
+/* Dresses or jewellery: two halves of one pill, at the top of the rental filters. */
+.rental-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--sand);
+  border: 1px solid var(--line-gold);
 }
-.filters__field input,
-.filters__field select {
-  min-height: 48px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.swatch {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 3px solid var(--ivory);
-  box-shadow: 0 0 0 1.5px var(--line-input);
+.rental-switch button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--muted);
   cursor: pointer;
 }
-.swatch[aria-pressed="true"] {
-  box-shadow: 0 0 0 2.5px var(--ink);
+.rental-switch button[aria-pressed="true"] {
+  background: var(--maroon);
+  color: var(--ivory);
+}
+
+/* Beside the costumes, the filters stay in view while the list scrolls past, until it ends. */
+@media (min-width: 900px) {
+  .filters {
+    position: sticky;
+    top: 107px; /* the sticky site header (83px) plus a gap */
+  }
 }
 
 .product {
@@ -1434,6 +1446,40 @@ button {
 }
 .product:hover .product__media {
   transform: translateY(-3px);
+}
+/* A real photo, shown whole in a square: the empty space is a soft blur of the same photo. */
+.product__media--photo {
+  aspect-ratio: 1;
+  border-radius: 16px;
+}
+.product__backdrop,
+.product__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.product__backdrop {
+  object-fit: cover;
+  filter: blur(18px) saturate(1.1);
+  transform: scale(1.15);
+  opacity: 0.55;
+}
+.product__photo {
+  object-fit: contain;
+}
+.product__code {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgb(255 251 243 / 0.92);
+  border: 1px solid var(--line-gold);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--maroon);
 }
 
 .stitch-step {
