@@ -3,6 +3,7 @@ import ArchVideo from "@/components/ArchVideo";
 import { whatsappHref } from "@/components/Footer";
 import { PlayButton } from "@/components/Video";
 import VideoReel from "@/components/VideoReel";
+import { VideoPlayer } from "@/components/MediaPlayer";
 import QuoteForm from "@/components/weddings/QuoteForm";
 import StepIcon from "@/components/weddings/StepIcon";
 import { ArchImage, Divider, Highlight, Mandala, SectionHead, Toran, minCol } from "@/components/ui";
@@ -125,31 +126,37 @@ export default async function WeddingsPage() {
       {online.visible && (
         <section className="section section--cream" style={{ paddingTop: "clamp(56px, 10vw, 120px)", paddingBottom: "clamp(56px, 10vw, 120px)", overflowX: "clip" }}>
           <div className="container split" style={{ gap: "clamp(28px, 6vw, 72px)" }}>
-            {online.text("img") && (
-              <div style={{ flex: "1 1 440px", display: "flex", justifyContent: "center" }}>
-                <div style={{ position: "relative", width: 480, maxWidth: "100%", aspectRatio: "1 / 1" }}>
-                  <img
-                    src="/images/mandala-light.svg"
-                    alt=""
-                    aria-hidden="true"
-                    style={{ position: "absolute", left: "-6%", top: "-6%", width: "112%", height: "112%", maxWidth: "none" }}
-                  />
-                  <div
-                    className="arch-tile"
-                    style={{
-                      position: "absolute",
-                      left: "20%",
-                      top: "10%",
-                      width: "60%",
-                      height: "80%",
-                      border: "6px solid var(--ivory)",
-                      boxShadow: "0 0 0 2px var(--gold), 0 24px 48px rgba(94, 26, 38, 0.16)",
-                    }}
-                  >
-                    <img src={online.text("img")} alt="Relatives rehearsing on a video call" className="cover" />
+            {online.text("video") ? (
+              <div style={{ flex: "1.4 1 520px", minWidth: 0 }}>
+                <VideoPlayer src={online.text("video")} title="How online wedding choreography works" />
+              </div>
+            ) : (
+              online.text("img") && (
+                <div style={{ flex: "1 1 440px", display: "flex", justifyContent: "center" }}>
+                  <div style={{ position: "relative", width: 480, maxWidth: "100%", aspectRatio: "1 / 1" }}>
+                    <img
+                      src="/images/mandala-light.svg"
+                      alt=""
+                      aria-hidden="true"
+                      style={{ position: "absolute", left: "-6%", top: "-6%", width: "112%", height: "112%", maxWidth: "none" }}
+                    />
+                    <div
+                      className="arch-tile"
+                      style={{
+                        position: "absolute",
+                        left: "20%",
+                        top: "10%",
+                        width: "60%",
+                        height: "80%",
+                        border: "6px solid var(--ivory)",
+                        boxShadow: "0 0 0 2px var(--gold), 0 24px 48px rgba(94, 26, 38, 0.16)",
+                      }}
+                    >
+                      <img src={online.text("img")} alt="Relatives rehearsing on a video call" className="cover" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )
             )}
             <div className="stack" style={{ flex: "1 1 480px", gap: 20 }}>
               <p className="eyebrow">{online.text("eyebrow")}</p>

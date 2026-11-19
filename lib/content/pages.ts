@@ -504,7 +504,8 @@ const weddings: PageSchema = {
           sub: [{ k: "label", label: "Highlight", t: "text" }],
           v: [{ label: "Video tutorials" }, { label: "Live sessions" }, { label: "In-person final run-through" }],
         },
-        { k: "img", label: "Image", t: "image", v: IMG.videoCall },
+        { k: "video", label: "Video", t: "text", v: "/videos/weddings-intro.mp4", ph: "/videos/…", help: "Shown at its full shape instead of the picture. Videos are kept in Firebase Storage under videos/." },
+        { k: "img", label: "Picture", t: "image", v: IMG.videoCall, help: "Shown when there is no video." },
       ],
     },
     {
