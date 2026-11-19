@@ -43,11 +43,6 @@ export default async function DanceCompanyPage() {
                     {hero.text("b1")}
                   </a>
                 )}
-                {hero.text("b2") && (
-                  <Link href="/natyashastra-hub" className="btn btn--outline">
-                    {hero.text("b2")}
-                  </Link>
-                )}
               </div>
             </div>
             {hero.text("img") && (
@@ -73,9 +68,13 @@ export default async function DanceCompanyPage() {
         <section className="section section--cream">
           <div className="container" style={{ display: "flex", flexDirection: "column", gap: "clamp(28px, 6vw, 48px)" }}>
             <SectionHead eyebrow={batches.text("eyebrow")} title={batches.text("heading")} />
-            <div className="grid-auto" style={minCol(240, { gap: 20 })}>
+            <div className="grid-auto" style={minCol(300, { gap: 24, maxWidth: 1000, width: "100%", margin: "0 auto" })}>
               {batches.list("list").map((b, i) => {
                 const featured = b.style?.startsWith("Highlighted");
+                const lines = (s?: string) => (s ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+                const pros = lines(b.pros);
+                const cons = lines(b.cons);
+                const listHead = { fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: featured ? "var(--yellow)" : "var(--rose)" } as const;
                 return (
                   <div
                     key={i}
@@ -84,7 +83,33 @@ export default async function DanceCompanyPage() {
                   >
                     <span style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 600 }}>{b.name}</span>
                     {b.who && <span style={featured ? { color: "var(--yellow)" } : undefined} className={featured ? undefined : "muted"}>{b.who}</span>}
-                    <span style={{ marginTop: 12, fontSize: 20, fontWeight: 700 }}>
+                    {pros.length > 0 && (
+                      <>
+                        <span style={{ ...listHead, marginTop: 16 }}>Why choose it</span>
+                        <ul className="sparkle-list" style={{ fontSize: 15, gap: 8 }}>
+                          {pros.map((p, j) => (
+                            <li key={j}>
+                              <Sparkle fill={featured ? "var(--yellow)" : undefined} stroke={featured ? "#fff" : undefined} />
+                              {p}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    {cons.length > 0 && (
+                      <>
+                        <span style={{ ...listHead, marginTop: 12 }}>Keep in mind</span>
+                        <ul className="sparkle-list" style={{ fontSize: 15, gap: 8, color: featured ? "#FFF1F4" : "var(--muted)" }}>
+                          {cons.map((c, j) => (
+                            <li key={j}>
+                              <span aria-hidden="true" style={{ flex: "none", width: 20, textAlign: "center", fontWeight: 700 }}>–</span>
+                              {c}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    <span style={{ marginTop: "auto", paddingTop: 16, fontSize: 20, fontWeight: 700 }}>
                       {b.price || "Ask us"}
                       {b.price && b.per && (
                         <span className={featured ? undefined : "muted"} style={{ fontSize: 14, fontWeight: 500, color: featured ? "#FFF1F4" : undefined }}>
