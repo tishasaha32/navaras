@@ -625,7 +625,9 @@ const dresses: PageSchema = {
           t: "area",
           v: "Rent a costume for the night, or have one stitched to your measurements — for stage, sangeet or arangetram.",
         },
-        { k: "img", label: "Image (arched frame)", t: "image", v: IMG.costume },
+        { k: "btn", label: "Button", t: "text", v: "Book us now", help: "Jumps to the custom stitching section." },
+        { k: "reel", label: "Hero video", t: "text", v: "/videos/dresses-hero.mp4", ph: "/videos/…", help: "Plays muted and looping in the arch, instead of the picture. Videos are kept in Firebase Storage under videos/." },
+        { k: "img", label: "Image (arched frame)", t: "image", v: IMG.costume, help: "Shown when there is no hero video." },
       ],
     },
     {
@@ -633,6 +635,8 @@ const dresses: PageSchema = {
       title: "Rental catalogue",
       desc: "Every costume in the rental shop, with its filters.",
       fields: [
+        { k: "eyebrow", label: "Small label", t: "text", v: "Rental" },
+        { k: "heading", label: "Heading", t: "text", v: "Rent a costume or jewellery for the day." },
         {
           k: "categories",
           label: "Category filters",
@@ -824,6 +828,7 @@ const dresses: PageSchema = {
       title: "Custom stitching",
       desc: "The four steps, and the measurement guide.",
       fields: [
+        { k: "eyebrow", label: "Small label", t: "text", v: "Custom stitching" },
         { k: "heading", label: "Heading", t: "text", v: "Your costume, in four steps." },
         {
           k: "steps",
@@ -831,7 +836,7 @@ const dresses: PageSchema = {
           t: "list",
           item: "Step",
           items: "Steps",
-          help: "The last step is shown in maroon with a booking button.",
+          help: "The last step is shown in maroon, with a button that jumps to the enquiry form.",
           sub: [
             { k: "title", label: "Step", t: "text" },
             { k: "text", label: "Description", t: "area" },
@@ -846,55 +851,7 @@ const dresses: PageSchema = {
         },
         { k: "video", label: "Measurement video link", t: "text", v: "", ph: "YouTube or Vimeo link" },
         { k: "chart", label: "Printable measurement chart", t: "text", v: "", ph: "Link to the PDF" },
-        { k: "book", label: "Consultation booking link", t: "text", v: "", ph: "https://… or leave empty to use WhatsApp" },
-      ],
-    },
-    {
-      id: "arangetram",
-      title: "Arangetram",
-      desc: "Full-look coordination for a debut.",
-      fields: [
-        { k: "kicker", label: "Devanagari line", t: "text", v: "रंगप्रवेश" },
-        { k: "heading", label: "Heading", t: "text", v: "Your debut, dressed from head to toe." },
-        { k: "text", label: "Text", t: "area", v: "We coordinate the full look — costume, jewellery and makeup — so you can focus on the performance." },
-        {
-          k: "chips",
-          label: "What’s included",
-          t: "list",
-          item: "Item",
-          items: "Items",
-          sub: [{ k: "label", label: "Item", t: "text" }],
-          v: [{ label: "Costume" }, { label: "Jewellery" }, { label: "Makeup" }],
-        },
-        { k: "btn", label: "Button", t: "text", v: "Bundle with arangetram training" },
-        { k: "img", label: "Image", t: "image", v: IMG.arangetram },
-      ],
-    },
-    {
-      id: "policies",
-      title: "Rental policies",
-      desc: "Clear terms shown before customers book.",
-      fields: [
-        { k: "eyebrow", label: "Small label", t: "text", v: "Policies" },
-        { k: "heading", label: "Heading", t: "text", v: "Clear terms, no surprises." },
-        {
-          k: "list",
-          label: "Policies",
-          t: "list",
-          item: "Policy",
-          items: "Policies",
-          sub: [
-            { k: "title", label: "Title", t: "text" },
-            { k: "text", label: "Details", t: "area", ph: "Explain the policy in one or two sentences" },
-          ],
-          v: [
-            { title: "Rental duration", text: "" },
-            { title: "Deposit", text: "" },
-            { title: "Cleaning", text: "" },
-            { title: "Damage", text: "" },
-            { title: "Alteration timelines", text: "" },
-          ],
-        },
+        { k: "to", label: "Send enquiries to", t: "text", v: "+91 96632 52637", ph: "Email or WhatsApp number", help: "The enquiry form below the steps opens a WhatsApp chat (or an email) with this." },
       ],
     },
     {

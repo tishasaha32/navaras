@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ArchVideo from "@/components/ArchVideo";
 import DressShop from "@/components/dresses/DressShop";
 import { ArchImage, Divider, Highlight, Mandala, Toran } from "@/components/ui";
 import { section } from "@/lib/content/pages";
@@ -16,10 +17,7 @@ export default async function DressesPage() {
   const catalogue = section(doc, "catalogue");
   const jewellery = section(doc, "jewellery");
   const custom = section(doc, "custom");
-  const arangetram = section(doc, "arangetram");
-  const policies = section(doc, "policies");
   const perk = section(doc, "perk");
-  const policyList = policies.list("list").filter((p) => p.title);
 
   const heroNode = hero.visible ? (
     <>
@@ -34,11 +32,24 @@ export default async function DressesPage() {
           </h1>
           <Divider />
           <p className="lead">{hero.text("text")}</p>
+          {hero.text("btn") && custom.visible && (
+            <div className="btn-row" style={{ marginTop: 6 }}>
+              <a href="#custom-stitching" className="btn btn--primary">
+                {hero.text("btn")}
+              </a>
+            </div>
+          )}
         </div>
-        {hero.text("img") && (
+        {hero.text("reel") ? (
           <div style={{ flex: "1 1 420px" }}>
-            <ArchImage src={hero.text("img")} alt="Classical dance costume" />
+            <ArchVideo src={hero.text("reel")} title="Navaras Dresses costumes and jewellery" tall />
           </div>
+        ) : (
+          hero.text("img") && (
+            <div style={{ flex: "1 1 420px" }}>
+              <ArchImage src={hero.text("img")} alt="Classical dance costume" />
+            </div>
+          )
         )}
       </div>
     </>
@@ -48,6 +59,7 @@ export default async function DressesPage() {
     <>
       <DressShop
         hero={heroNode}
+        rental={{ eyebrow: catalogue.text("eyebrow"), heading: catalogue.text("heading") }}
         catalogue={
           catalogue.visible
             ? {
@@ -67,89 +79,16 @@ export default async function DressesPage() {
         custom={
           custom.visible
             ? {
+                eyebrow: custom.text("eyebrow"),
                 heading: custom.text("heading"),
                 steps: custom.list("steps").filter((s) => s.title),
                 video: custom.text("video"),
                 chart: custom.text("chart"),
-                book: custom.text("book"),
+                sendTo: custom.text("to"),
               }
             : null
         }
       />
-
-      {/* ARANGETRAM */}
-      {arangetram.visible && (
-        <section className="section" style={{ overflow: "hidden", background: "var(--yellow)" }}>
-          <Mandala variant="light" style={{ right: -300, top: -260, width: 680, height: 680 }} />
-          <div className="container split" style={{ gap: "clamp(28px, 6vw, 72px)" }}>
-            {arangetram.text("img") && (
-              <div style={{ flex: "1 1 420px", display: "flex", justifyContent: "center" }}>
-                <div
-                  className="arch-tile"
-                  style={{
-                    width: 380,
-                    maxWidth: "100%",
-                    aspectRatio: "3 / 4",
-                    background: "var(--cream)",
-                    border: "6px solid var(--ivory)",
-                    boxShadow: "0 0 0 2px var(--gold), 0 24px 48px rgba(94, 26, 38, 0.18)",
-                  }}
-                >
-                  <img src={arangetram.text("img")} alt="Dancer in full arangetram costume and jewellery" className="cover" />
-                </div>
-              </div>
-            )}
-            <div className="stack" style={{ flex: "1 1 480px", gap: 20 }}>
-              <p lang="sa" className="dev" style={{ color: "var(--rose-deep)", fontWeight: 400 }}>
-                {arangetram.text("kicker")}
-              </p>
-              <h2 className="h2" style={{ fontSize: "clamp(29px, 3.24vw, 40px)" }}>
-                {arangetram.text("heading")}
-              </h2>
-              <Divider />
-              <p style={{ fontSize: 16 }}>{arangetram.text("text")}</p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                {arangetram
-                  .list("chips")
-                  .filter((c) => c.label)
-                  .map((c, i) => (
-                    <span key={i} className="tag" style={{ borderColor: "var(--gold)", fontWeight: 700 }}>
-                      {c.label}
-                    </span>
-                  ))}
-              </div>
-              {arangetram.text("btn") && (
-                <Link href="/navaras-dance-company" className="btn btn--primary" style={{ alignSelf: "flex-start", minHeight: 52 }}>
-                  {arangetram.text("btn")} →
-                </Link>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* POLICIES */}
-      {policies.visible && policyList.length > 0 && (
-        <section id="policies" className="section section--cream" style={{ paddingTop: "clamp(56px, 10vw, 120px)", paddingBottom: "clamp(56px, 10vw, 120px)", scrollMarginTop: 80 }}>
-          <div className="container" style={{ display: "flex", flexWrap: "wrap", gap: "clamp(28px, 6vw, 64px)" }}>
-            <div className="stack" style={{ flex: "1 1 340px", gap: 16 }}>
-              <p className="eyebrow">{policies.text("eyebrow")}</p>
-              <h2 className="h2" style={{ fontSize: "clamp(29px, 3.24vw, 39px)" }}>
-                {policies.text("heading")}
-              </h2>
-              <Divider />
-            </div>
-            <dl className="policies">
-              {policyList.map((p, i) => (
-                <div key={i} className="policies__row">
-                  <dt>{p.title}</dt>
-                  <dd style={{ whiteSpace: "pre-line" }}>{p.text || "Ask us for details."}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </section>
-      )}
 
       {/* STUDENT PERK */}
       {perk.visible && perk.text("discount") && (

@@ -1,56 +1,34 @@
 "use client";
 
 import { useState } from "react";
+import StitchForm from "@/components/dresses/StitchForm";
 import { PlayButton } from "@/components/Video";
-import { Divider, minCol } from "@/components/ui";
+import { SectionHead, minCol } from "@/components/ui";
 import type { ListItem } from "@/lib/content/pages";
 
 const NUMERALS = ["१", "२", "३", "४", "५", "६", "७", "८"];
 
 type Catalogue = { categories: string[]; items: ListItem[] } | null;
-type Custom = { heading: string; steps: ListItem[]; video: string; chart: string; book: string } | null;
-type Tab = "rent" | "custom";
+type Custom = { eyebrow: string; heading: string; steps: ListItem[]; video: string; chart: string; sendTo: string } | null;
 type Part = { label: string; catalogue: NonNullable<Catalogue>; noun: readonly [string, string] };
+type Rental = { eyebrow: string; heading: string };
 
-export default function DressShop({ hero, catalogue, jewellery, custom }: { hero: React.ReactNode; catalogue: Catalogue; jewellery: Catalogue; custom: Custom }) {
+export default function DressShop({ hero, rental, catalogue, jewellery, custom }: { hero: React.ReactNode; rental: Rental; catalogue: Catalogue; jewellery: Catalogue; custom: Custom }) {
   /** Rental holds the dresses and the jewellery, each with its own categories. */
   const parts: Part[] = [];
   if (catalogue) parts.push({ label: "Dresses", catalogue, noun: ["costume", "costumes"] });
   if (jewellery) parts.push({ label: "Jewellery", catalogue: jewellery, noun: ["piece", "pieces"] });
-  const tabs = (
-    [
-      ["rent", "Rental", parts.length > 0],
-      ["custom", "Custom stitching", Boolean(custom)],
-    ] as const
-  ).filter(([, , shown]) => shown);
-  const [tab, setTab] = useState<Tab>(tabs[0]?.[0] ?? "custom");
 
   return (
     <>
-      <section className="hero-section" style={{ paddingBottom: tabs.length > 1 ? 0 : undefined }}>
-        {hero}
-        {tabs.length > 1 && (
-          <div className="container" role="tablist" aria-label="Shop" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginTop: 48 }}>
-            {tabs.map(([id, label]) => (
-              <button key={id} type="button" role="tab" aria-selected={tab === id} className="shop-tab" onClick={() => setTab(id)}>
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
+      <section className="hero-section">{hero}</section>
 
-      {parts.length > 0 && tab === "rent" && <RentalBrowser parts={parts} />}
+      {parts.length > 0 && <RentalBrowser rental={rental} parts={parts} />}
 
-      {custom && tab === "custom" && (
-        <section role="tabpanel" aria-label="Custom stitching" className="section section--ivory" style={{ padding: "clamp(32px, 8vw, 64px) clamp(16px, 5vw, 32px) clamp(56px, 10vw, 112px)", borderTop: "1px solid var(--line-gold)" }}>
+      {custom && (
+        <section id="custom-stitching" aria-label="Custom stitching" className="section section--cream" style={{ paddingTop: "clamp(56px, 10vw, 112px)", paddingBottom: "clamp(56px, 10vw, 112px)", borderTop: "1px solid var(--line-gold)", scrollMarginTop: 80 }}>
           <div className="container" style={{ display: "flex", flexDirection: "column", gap: 44 }}>
-            <div className="section-head">
-              <h2 className="h2" style={{ fontSize: "clamp(28px, 3.08vw, 37px)" }}>
-                {custom.heading}
-              </h2>
-              <Divider />
-            </div>
+            <SectionHead eyebrow={custom.eyebrow} title={custom.heading} />
             <ol className="grid-auto" style={minCol(260, { margin: 0, padding: 0, listStyle: "none" })}>
               {custom.steps.map((s, i) => {
                 const last = i === custom.steps.length - 1 && custom.steps.length > 1;
@@ -76,7 +54,7 @@ export default function DressShop({ hero, catalogue, jewellery, custom }: { hero
                       </a>
                     )}
                     {last && (
-                      <a href={custom.book || "#contact"} className="btn btn--saffron btn--sm">
+                      <a href="#stitch-form" className="btn btn--saffron btn--sm">
                         Book now
                       </a>
                     )}
@@ -84,6 +62,7 @@ export default function DressShop({ hero, catalogue, jewellery, custom }: { hero
                 );
               })}
             </ol>
+            <StitchForm sendTo={custom.sendTo} />
           </div>
         </section>
       )}
@@ -95,7 +74,7 @@ export default function DressShop({ hero, catalogue, jewellery, custom }: { hero
  * The rental catalogues, with their filters beside them: a switch between dresses and jewellery,
  * then that part's categories. The filters stay in view while the pieces scroll past.
  */
-function RentalBrowser({ parts }: { parts: Part[] }) {
+function RentalBrowser({ rental, parts }: { rental: Rental; parts: Part[] }) {
   const [partIndex, setPartIndex] = useState(0);
   const { label, catalogue, noun } = parts[partIndex] ?? parts[0];
   const { categories } = catalogue;
@@ -106,7 +85,10 @@ function RentalBrowser({ parts }: { parts: Part[] }) {
   const fallback = noun[0][0].toUpperCase() + noun[0].slice(1);
 
   return (
-    <section role="tabpanel" aria-label="Rental" className="section section--ivory" style={{ padding: "clamp(32px, 8vw, 64px) clamp(16px, 5vw, 32px) clamp(56px, 10vw, 112px)", borderTop: "1px solid var(--line-gold)" }}>
+    <section id="rental" aria-label="Rental" className="section section--ivory" style={{ paddingTop: "clamp(56px, 10vw, 112px)", paddingBottom: "clamp(56px, 10vw, 112px)", borderTop: "1px solid var(--line-gold)", scrollMarginTop: 80 }}>
+      <div className="container" style={{ marginBottom: "clamp(28px, 6vw, 48px)" }}>
+        <SectionHead eyebrow={rental.eyebrow} title={rental.heading} />
+      </div>
       <div className="container" style={{ display: "flex", flexWrap: "wrap", gap: "clamp(28px, 6vw, 48px)" }}>
         <aside className="filters">
           {parts.length > 1 && (
