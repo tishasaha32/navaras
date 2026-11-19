@@ -110,7 +110,11 @@ export default async function DanceCompanyPage() {
                       </>
                     )}
                     <span style={{ marginTop: "auto", paddingTop: 16, fontSize: 20, fontWeight: 700 }}>
-                      {b.price || "Ask us"}
+                      {b.price || (
+                        <a href="#trial" style={{ color: "inherit", textDecoration: "underline", textUnderlineOffset: 4 }}>
+                          Ask us
+                        </a>
+                      )}
                       {b.price && b.per && (
                         <span className={featured ? undefined : "muted"} style={{ fontSize: 14, fontWeight: 500, color: featured ? "#FFF1F4" : undefined }}>
                           {" "}

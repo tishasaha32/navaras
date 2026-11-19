@@ -26,8 +26,9 @@ function localLabel(day: string, time: string, timeZone?: string): string {
   if (minutes === null || dayIdx === -1) return [day, time].filter(Boolean).join(" · ") || "To be announced";
   // 4 Jan 1970 was a Sunday; place the slot in that week, in UTC.
   const utc = Date.UTC(1970, 0, 4 + dayIdx, 0, minutes) - 330 * 60_000;
-  const fmt = new Intl.DateTimeFormat(undefined, { weekday: "short", hour: "numeric", minute: "2-digit", timeZone });
-  return fmt.format(new Date(utc)).replace(",", " ·");
+  // A fixed locale, so the server's render and the browser's agree.
+  const fmt = new Intl.DateTimeFormat("en-US", { weekday: "short", hour: "numeric", minute: "2-digit", hour12: true, timeZone });
+  return fmt.format(new Date(utc)).replace(",", " ·").replace(/\s?([AP])M$/, (_, p: string) => ` ${p.toLowerCase()}m`);
 }
 
 export default function TrialBooking({ slots, sendTo }: { slots: ListItem[]; sendTo: string }) {
