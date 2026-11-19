@@ -3,7 +3,7 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { MAX_AUDIO_MB, MAX_VIDEO_MB, type Hub } from "@/lib/content/hub";
-import { UPLOAD_NAME } from "@/lib/content/images";
+import { AUDIO_NAME, UPLOAD_NAME, VIDEO_NAME, listImages } from "@/lib/content/images";
 import { deleteUnusedUpload, publish, saveDraft } from "@/lib/content/store";
 import { saveUpload } from "@/lib/content/uploads";
 import { parseHub } from "@/lib/content/validate";
@@ -22,13 +22,20 @@ function refresh() {
   revalidatePath("/", "layout");
 }
 
-/** Save the whole Natyashastra Hub (categories, sections, chapters, quizzes). */
-export async function saveHub(data: unknown, mode: "draft" | "publish"): Promise<ActionResult & { hub?: Hub }> {
+const isUploadName = (name: unknown): name is string => typeof name === "string" && [UPLOAD_NAME, AUDIO_NAME, VIDEO_NAME].some((re) => re.test(name));
+
+/**
+ * Save the whole Natyashastra Hub (categories, sections, chapters, quizzes).
+ * `uploaded` lists files the editor uploaded since it opened: any the saved content doesn't use are deleted,
+ * so media removed before it was ever saved doesn't stay in Storage.
+ */
+export async function saveHub(data: unknown, mode: "draft" | "publish", uploaded: unknown = []): Promise<ActionResult & { hub?: Hub }> {
   await requireAdmin();
   const parsed = parseHub(data, mode === "publish");
   if (!parsed.ok) return parsed;
-  if (mode === "publish") await publish(parsed.hub);
-  else await saveDraft(parsed.hub);
+  const discardable = Array.isArray(uploaded) ? uploaded.filter(isUploadName) : [];
+  if (mode === "publish") await publish(parsed.hub, discardable);
+  else await saveDraft(parsed.hub, discardable);
   refresh();
   return { ok: true, hub: parsed.hub };
 }
@@ -55,6 +62,12 @@ async function store(buf: Buffer, ext: string): Promise<ActionResult> {
   const name = `${randomUUID()}.${ext}`;
   await saveUpload(name, buf, CONTENT_TYPES[ext]);
   return { ok: true, url: `/uploads/${name}` };
+}
+
+/** The image library as it is now: saves delete uploads the content stopped using. */
+export async function libraryImages(): Promise<string[]> {
+  await requireAdmin();
+  return listImages();
 }
 
 /** Removes an uploaded image from the library, unless a page, chapter or draft still shows it. */

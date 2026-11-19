@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { uploadAudio, uploadImage, uploadVideo } from "@/app/admin/actions";
+import { uploadAudio, uploadImage, uploadVideo } from "../uploads";
 import { HUB_PATH, QUIZ_TYPES, slugify, type Chapter, type Hub, type HubSection, type Quiz, type Status } from "@/lib/content/hub";
 import RichTextEditor from "../RichTextEditor";
 import { ImageField, usePickImage } from "../ImageLibrary";

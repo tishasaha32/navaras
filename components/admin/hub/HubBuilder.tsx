@@ -6,6 +6,7 @@ import { HUB_PATH, itemHref, sectionsHidingContent, type Hub, type HubSection } 
 import EditorHeader, { useSaveFlow } from "../EditorHeader";
 import { ChevronRightIcon, PlusIcon, QuizIcon } from "../icons";
 import { ImageLibraryProvider } from "../ImageLibrary";
+import { uploadsThisVisit } from "../uploads";
 import { CategoriesEditor, ChapterEditor, QuizEditor, SectionEditor, newChapter, newId, newQuiz } from "./HubEditors";
 
 export type Selection =
@@ -73,7 +74,7 @@ export default function HubBuilder({ initial, hasDraft, library }: { initial: Hu
     if (toSave !== hub) setHub(toSave);
     flow.run(
       mode,
-      (m) => saveHub(toSave, m),
+      (m) => saveHub(toSave, m, uploadsThisVisit()),
       (res) => {
         // Pick up slugs computed by the server (and questions cleaned up on publish).
         if ("hub" in res && res.hub) setHub(res.hub as Hub);

@@ -124,10 +124,11 @@ export async function getEditableHub(): Promise<{ data: Hub; hasDraft: boolean }
 let queue: Promise<unknown> = Promise.resolve();
 
 /**
- * Applies one save in turn, then deletes any uploaded file that save stopped using.
+ * Applies one save in turn, then deletes any uploaded file that save stopped using, and any of
+ * `uploaded` (files the editor added since it opened) that nothing uses.
  * Reads once: everything after that is worked out from what the save is writing.
  */
-function change({ live, draft }: HubChange): Promise<void> {
+function change({ live, draft }: HubChange, uploaded: string[]): Promise<void> {
   const run = queue.then(async () => {
     const stored = firebaseEnabled ? await readContent() : null;
     const before = stored ? normalize(stored) : await readFromDisk();
@@ -141,18 +142,19 @@ function change({ live, draft }: HubChange): Promise<void> {
     shared.contentCache = { file: after, at: Date.now(), saved: true };
     shared.contentSaves = (shared.contentSaves ?? 0) + 1;
     const used = uploadsUsed(after);
-    await Promise.all([...uploadsUsed(before)].filter((name) => !used.has(name)).map((name) => deleteUpload(name).catch(console.error)));
+    const unused = new Set([...uploadsUsed(before), ...uploaded].filter((name) => !used.has(name)));
+    await Promise.all([...unused].map((name) => deleteUpload(name).catch(console.error)));
   });
   queue = run.catch(() => undefined);
   return run;
 }
 
-export function saveDraft(hub: Hub) {
-  return change({ draft: hub });
+export function saveDraft(hub: Hub, uploaded: string[] = []) {
+  return change({ draft: hub }, uploaded);
 }
 
-export function publish(hub: Hub) {
-  return change({ live: hub, draft: null });
+export function publish(hub: Hub, uploaded: string[] = []) {
+  return change({ live: hub, draft: null }, uploaded);
 }
 
 /** Deletes an uploaded file nothing uses any more. Returns false if something still does. */

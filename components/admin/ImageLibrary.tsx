@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useRef, useState, useTransition } from "react";
-import { deleteImage, uploadImage } from "@/app/admin/actions";
+import { deleteImage, libraryImages } from "@/app/admin/actions";
+import { uploadImage } from "./uploads";
 
 type Pick = (current?: string) => Promise<string | null>;
 
@@ -27,6 +28,7 @@ export function ImageLibraryProvider({ library, children }: { library: string[];
     setCurrent(cur);
     setError(null);
     dialog.current?.showModal();
+    libraryImages().then(setImages, console.error);
     return new Promise((resolve) => {
       resolver.current = resolve;
     });
