@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { HUB_PATH } from "@/lib/content/hub";
 
 type NavLink = { href: string; label: string; current?: boolean };
 
@@ -30,7 +29,7 @@ export default function Header({ links, cta, onSignOut }: { links: NavLink[]; ct
   return (
     <header className="site-header">
       <nav aria-label="Main" className="site-nav">
-        <Link href={pathname.startsWith(HUB_PATH) ? HUB_PATH : "/"} className="brand" onClick={() => setOpen(false)}>
+        <Link href="/" className="brand" onClick={() => setOpen(false)}>
           <img src="/images/logo.png" alt="" />
           Navaras
         </Link>

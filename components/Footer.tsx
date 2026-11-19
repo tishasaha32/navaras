@@ -37,7 +37,6 @@ const columns = [
     links: [
       { href: `${HUB_PATH}/my-learning`, label: "My learning" },
       { href: "/navaras-dance-company#portal", label: "Student portal" },
-      { href: "/navaras-dresses#policies", label: "Rental policies" },
       { href: "#contact", label: "Contact us" },
     ],
   },
