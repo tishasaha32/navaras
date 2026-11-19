@@ -22,4 +22,9 @@ export const IMG = {
   packageEntry: "/images/package-entry.svg",
   packageFamily: "/images/package-family.svg",
   packageShow: "/images/package-show.svg",
+  homeDance: "/images/home-ndc.jpg",
+  homeWeddings: "/images/home-nw.jpg",
+  homeDresses: "/images/home-nd.jpg",
+  homeHub: "/images/home-natyashastra.jpg",
+  homeHero: "/images/home-hero.jpg",
 } as const;

@@ -1064,7 +1064,7 @@ button {
 }
 .service-card__media {
   position: relative;
-  aspect-ratio: 1 / 1.05;
+  aspect-ratio: 3 / 4;
   border-radius: 240px 240px 12px 12px;
   overflow: hidden;
 }

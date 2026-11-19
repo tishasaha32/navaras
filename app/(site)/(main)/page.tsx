@@ -39,7 +39,7 @@ export default async function Home() {
           </div>
           {hero.text("img") && (
             <div style={{ flex: "1 1 440px" }}>
-              <ArchImage src={hero.text("img")} alt="" />
+              <ArchImage src={hero.text("img")} alt="A classical dancer in a red and gold costume, mid-pose, under a warm spotlight" />
             </div>
           )}
         </div>
@@ -53,7 +53,7 @@ export default async function Home() {
         <div className="container split" style={{ flexWrap: "wrap-reverse" }}>
           {hub.text("img") && (
             <div style={{ flex: "1 1 440px" }}>
-              <ArchImage src={hub.text("img")} alt="" dark />
+              <ArchImage src={hub.text("img")} alt="An open book of dance drawings on a carved stand, between brass lamps" dark />
             </div>
           )}
           <div className="stack" style={{ flex: "1 1 540px" }}>

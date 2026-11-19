@@ -91,7 +91,7 @@ const landing: PageSchema = {
       desc: "The first thing visitors see.",
       fields: [
         { k: "kicker", label: "Small line above the heading", t: "text", v: "नृत्य · उत्सव · शृंगार" },
-        { k: "heading", label: "Heading", t: "area", help: HIGHLIGHT_HELP, v: "Dance, celebration and costume, rooted in the *Natyashastra*. xyz" },
+        { k: "heading", label: "Heading", t: "area", help: HIGHLIGHT_HELP, v: "Dance, celebration and costume, rooted in the *Natyashastra*." },
         {
           k: "text",
           label: "Introduction",
@@ -102,7 +102,7 @@ const landing: PageSchema = {
         { k: "b1h", label: "First button goes to", t: "text", v: "#hub-intro" },
         { k: "b2", label: "Second button", t: "text", v: "Our services" },
         { k: "b2h", label: "Second button goes to", t: "text", v: "#services" },
-        { k: "img", label: "Image (arched frame)", t: "image", v: IMG.classical },
+        { k: "img", label: "Image (arched frame)", t: "image", v: IMG.homeHero },
       ],
     },
     {
@@ -138,7 +138,7 @@ const landing: PageSchema = {
         },
         { k: "btn", label: "Button", t: "text", v: "Start learning" },
         { k: "btnh", label: "Button goes to", t: "text", v: "/natyashastra-hub" },
-        { k: "img", label: "Image (arched frame)", t: "image", v: IMG.blue },
+        { k: "img", label: "Image (arched frame)", t: "image", v: IMG.homeHub },
       ],
     },
     {
@@ -171,7 +171,7 @@ const landing: PageSchema = {
               btn: "See classes",
               desc: "Live online classical and semi-classical classes, from first steps to performance.",
               href: "/navaras-dance-company",
-              img: IMG.online,
+              img: IMG.homeDance,
             },
             {
               title: "Celebrate",
@@ -180,7 +180,7 @@ const landing: PageSchema = {
               btn: "Plan your sangeet",
               desc: "Sangeet and wedding choreography — even for families spread across countries.",
               href: "/navaras-weddings",
-              img: IMG.couple,
+              img: IMG.homeWeddings,
             },
             {
               title: "Adorn",
@@ -189,7 +189,7 @@ const landing: PageSchema = {
               btn: "Browse costumes",
               desc: "Costume rentals and custom stitching for stage, sangeet and arangetram.",
               href: "/navaras-dresses",
-              img: IMG.costume,
+              img: IMG.homeDresses,
             },
           ],
         },
