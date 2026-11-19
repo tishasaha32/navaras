@@ -18,4 +18,8 @@ export const IMG = {
   stageIntermediate: "/images/stage-intermediate.svg",
   stageAdvanced: "/images/stage-advanced.svg",
   stagePerformance: "/images/stage-performance.svg",
+  packageCouple: "/images/package-couple.svg",
+  packageEntry: "/images/package-entry.svg",
+  packageFamily: "/images/package-family.svg",
+  packageShow: "/images/package-show.svg",
 } as const;

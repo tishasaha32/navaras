@@ -1235,6 +1235,86 @@ button {
   padding: 40px 28px 32px;
   border-radius: 160px 160px 20px 20px;
 }
+/* A moving picture in the arch, with small round controls on its lower edge. */
+.arch video.arch__img {
+  background: var(--maroon-deep);
+}
+.arch-video__controls {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  gap: 8px;
+}
+.arch-video__btn {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--gold-soft);
+  border-radius: 50%;
+  background: rgb(74 19 29 / 0.72);
+  color: var(--ivory);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.arch-video__btn:hover {
+  background: var(--maroon);
+}
+
+/* A sideways-scrolling row of videos. */
+.reel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.reel__track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.reel__track::-webkit-scrollbar {
+  display: none;
+}
+.reel__item {
+  flex: 0 0 clamp(260px, calc((100% - 40px) / 3), 340px);
+  margin: 0;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.reel__item .video-player {
+  margin: 0;
+  width: 100%;
+  max-width: none;
+}
+.reel__caption {
+  text-align: center;
+  font-weight: 600;
+  color: var(--muted);
+}
+.reel__nav {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+@media (max-width: 600px) {
+  .reel__item {
+    flex-basis: 82%;
+  }
+}
+
+.package__art {
+  display: block;
+  width: min(180px, 70%);
+  height: auto;
+  aspect-ratio: 1;
+  margin-bottom: 6px;
+}
 .package__title {
   font-family: var(--font-display);
   font-size: 24px;

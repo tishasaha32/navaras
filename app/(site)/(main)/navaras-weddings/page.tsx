@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import ArchVideo from "@/components/ArchVideo";
 import { whatsappHref } from "@/components/Footer";
 import { PlayButton } from "@/components/Video";
+import VideoReel from "@/components/VideoReel";
 import QuoteForm from "@/components/weddings/QuoteForm";
+import StepIcon from "@/components/weddings/StepIcon";
 import { ArchImage, Divider, Highlight, Mandala, SectionHead, Toran, minCol } from "@/components/ui";
+import { IMG } from "@/lib/content/images-builtin";
 import { section } from "@/lib/content/pages";
 import { getLive } from "@/lib/content/store";
 
@@ -13,6 +17,9 @@ export const metadata: Metadata = {
 
 const NUMERALS = ["१", "२", "३", "४", "५", "६", "७", "८", "९", "१०"];
 const TILE_BG = ["var(--sand)", "var(--sand-2)"];
+
+/** The picture each package shows when none is chosen, in the default order. */
+const PACKAGE_IMAGES = [IMG.packageCouple, IMG.packageEntry, IMG.packageFamily, IMG.packageShow];
 
 export default async function WeddingsPage() {
   const { pages } = await getLive();
@@ -26,6 +33,8 @@ export default async function WeddingsPage() {
   const whatsapp = section(pages.landing, "footer").text("wa");
   const stepList = steps.list("list").filter((s) => s.title);
   const quotes = portfolio.list("quotes").filter((t) => t.quote);
+  const reel = portfolio.list("videos").filter((v) => v.video);
+  const linked = portfolio.list("videos").filter((v) => !v.video && (v.img || v.url));
 
   return (
     <>
@@ -56,12 +65,18 @@ export default async function WeddingsPage() {
                 )}
               </div>
             </div>
-            {hero.text("img") && (
+            {hero.text("reel") ? (
               <div style={{ flex: "1 1 460px" }}>
-                <ArchImage src={hero.text("img")} alt="Couple dance highlight reel">
-                  <PlayButton url={hero.text("video")} title="Navaras Weddings highlight reel" />
-                </ArchImage>
+                <ArchVideo src={hero.text("reel")} title="Navaras Weddings highlight reel" />
               </div>
+            ) : (
+              hero.text("img") && (
+                <div style={{ flex: "1 1 460px" }}>
+                  <ArchImage src={hero.text("img")} alt="Couple dance highlight reel">
+                    <PlayButton url={hero.text("video")} title="Navaras Weddings highlight reel" />
+                  </ArchImage>
+                </div>
+              )
             )}
           </div>
         </section>
@@ -76,24 +91,28 @@ export default async function WeddingsPage() {
               {packages.list("list").map((p, i) =>
                 p.style?.startsWith("Featured") ? (
                   <div key={i} className="card card--center card--maroon package" style={{ boxShadow: "0 0 0 4px var(--sand), 0 0 0 5px var(--gold)" }}>
+                    <img src={p.img || IMG.packageShow} alt="" className="package__art" loading="lazy" />
                     <span className="label" style={{ color: "var(--gold-soft)" }}>
                       The full experience
                     </span>
                     <span className="package__title">{p.name}</span>
                     {p.includes && <p style={{ fontSize: 14, whiteSpace: "pre-line", color: "var(--blush)" }}>{p.includes}</p>}
-                    <span className="package__price" style={{ color: "var(--gold-soft)" }}>
-                      {p.price || "Ask for a quote"}
-                    </span>
+                    {p.price && (
+                      <span className="package__price" style={{ color: "var(--gold-soft)" }}>
+                        {p.price}
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <div key={i} className="card card--center package">
+                    <img src={p.img || (PACKAGE_IMAGES[i] ?? IMG.packageCouple)} alt="" className="package__art" loading="lazy" />
                     <span className="package__title">{p.name}</span>
                     {p.includes && (
                       <p className="muted" style={{ fontSize: 14, whiteSpace: "pre-line" }}>
                         {p.includes}
                       </p>
                     )}
-                    <span className="package__price">{p.price || "Ask for a quote"}</span>
+                    {p.price && <span className="package__price">{p.price}</span>}
                   </div>
                 ),
               )}
@@ -167,6 +186,9 @@ export default async function WeddingsPage() {
                 const last = i === stepList.length - 1 && stepList.length > 1;
                 return (
                   <li key={i} className="step" style={last ? { background: "var(--saffron)", color: "var(--ink)", border: "none" } : undefined}>
+                    <span style={{ color: last ? "var(--maroon)" : "var(--gold-soft)" }}>
+                      <StepIcon index={i} />
+                    </span>
                     <span
                       lang="hi"
                       className="numeral"
@@ -188,11 +210,10 @@ export default async function WeddingsPage() {
         <section id="portfolio" className="section section--cream" style={{ paddingTop: "clamp(56px, 10vw, 120px)", paddingBottom: "clamp(56px, 10vw, 120px)", scrollMarginTop: 80 }}>
           <div className="container" style={{ display: "flex", flexDirection: "column", gap: "clamp(28px, 6vw, 48px)" }}>
             <SectionHead eyebrow={portfolio.text("eyebrow")} title={portfolio.text("heading")} />
-            <div className="grid-auto" style={minCol(300, { gap: 24 })}>
-              {portfolio
-                .list("videos")
-                .filter((v) => v.img || v.url)
-                .map((v, i) => (
+            {reel.length > 0 && <VideoReel items={reel.map((v) => ({ src: v.video, title: v.title }))} label={portfolio.text("heading") || "Past sangeets"} />}
+            {linked.length > 0 && (
+              <div className="grid-auto" style={minCol(300, { gap: 24 })}>
+                {linked.map((v, i) => (
                   <figure key={i} style={{ margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
                     <div className="arch-tile" style={{ aspectRatio: "4 / 5", background: TILE_BG[i % 2] }}>
                       {v.img && <img src={v.img} alt={v.title || `Sangeet ${i + 1}`} className="cover" />}
@@ -205,7 +226,8 @@ export default async function WeddingsPage() {
                     )}
                   </figure>
                 ))}
-            </div>
+              </div>
+            )}
             {quotes.length > 0 && (
               <div className="grid-auto" style={minCol(320, { gap: 24 })}>
                 {quotes.map((t, i) => (
@@ -233,7 +255,7 @@ export default async function WeddingsPage() {
             title={quote.text("heading")}
             submitLabel={quote.text("btn")}
             whatsappLabel={quote.text("waBtn")}
-            whatsapp={whatsappHref(whatsapp, "Hi! I’d like a quote for wedding choreography.")}
+            whatsapp={whatsappHref(whatsapp || quote.text("to"), "Hi! I’d like a quote for wedding choreography.")}
             levels={quote.list("levels").map((l) => l.label).filter(Boolean)}
             sendTo={quote.text("to")}
             bundle={quote.text("bundle")}
