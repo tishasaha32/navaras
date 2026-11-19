@@ -24,11 +24,13 @@ export async function deleteUpload(name: string) {
 }
 
 /** A direct Storage link, so browsers stream audio and video without going through this server. */
-export async function uploadLink(name: string): Promise<string | null> {
+export async function storageLink(objectPath: string): Promise<string | null> {
   if (!firebaseEnabled) return null;
-  const [url] = await bucket().file(`uploads/${name}`).getSignedUrl({ version: "v4", action: "read", expires: Date.now() + UPLOAD_LINK_HOURS * 3_600_000 });
+  const [url] = await bucket().file(objectPath).getSignedUrl({ version: "v4", action: "read", expires: Date.now() + UPLOAD_LINK_HOURS * 3_600_000 });
   return url;
 }
+
+export const uploadLink = (name: string) => storageLink(`uploads/${name}`);
 
 export async function readStorageFile(objectPath: string): Promise<StoredFile | null> {
   const file = bucket().file(objectPath);
