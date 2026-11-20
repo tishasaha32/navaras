@@ -152,6 +152,27 @@ export function sectionsHidingContent(hub: Hub): HubSection[] {
   return hub.sections.filter((s) => s.status === "draft" && [...s.chapters, ...s.quizzes].some((x) => x.status === "published"));
 }
 
+/**
+ * `live` with everything `draft` marks as Draft hidden too, so taking something off the site
+ * happens on save; putting something on it still waits for Publish. Matched by id.
+ * Returns `live` itself when nothing needs hiding.
+ */
+export function hideDraftedInLive(live: Hub, draft: Hub): Hub {
+  const drafted = new Set<string>();
+  for (const s of draft.sections) {
+    if (s.status === "draft") drafted.add(s.id);
+    for (const x of [...s.chapters, ...s.quizzes]) if (x.status === "draft") drafted.add(x.id);
+  }
+  let changed = false;
+  const hide = <T extends { id: string; status: Status }>(x: T): T => {
+    if (x.status !== "published" || !drafted.has(x.id)) return x;
+    changed = true;
+    return { ...x, status: "draft" };
+  };
+  const sections = live.sections.map((s) => ({ ...hide(s), chapters: s.chapters.map(hide), quizzes: s.quizzes.map(hide) }));
+  return changed ? { ...live, sections } : live;
+}
+
 export function publicHub(hub: Hub, includeDrafts = false): Hub {
   const shown = (x: { status: Status }) => includeDrafts || x.status === "published";
   const sections = hub.sections

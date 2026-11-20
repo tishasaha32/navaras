@@ -1,13 +1,12 @@
-import { draftMode } from "next/headers";
 import FirebaseAnalytics from "@/components/FirebaseAnalytics";
 import Footer from "@/components/Footer";
 import { section } from "@/lib/content/pages";
-import { getLive } from "@/lib/content/store";
+import { getLive, isPreviewing } from "@/lib/content/store";
 
 export default async function SiteLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { pages, hub } = await getLive();
   const footer = section(pages.landing, "footer");
-  const preview = (await draftMode()).isEnabled;
+  const preview = await isPreviewing();
   return (
     <>
       <FirebaseAnalytics />

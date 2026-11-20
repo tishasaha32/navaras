@@ -3,9 +3,10 @@ import { promises as fs } from "fs";
 import { draftMode } from "next/headers";
 import path from "path";
 import { cache } from "react";
+import { getAdmin } from "@/lib/admin-auth";
 import { firebaseEnabled } from "@/lib/firebase-admin";
 import { readContent, writeContent, type HubChange } from "./firebase-store";
-import { publicHub, upgradeChapters, type Hub } from "./hub";
+import { hideDraftedInLive, publicHub, upgradeChapters, type Hub } from "./hub";
 import { uploadsUsed } from "./hub-docs";
 import { seedHub } from "./hub-seed";
 import { PAGE_KEYS, PAGE_SCHEMAS, normalizePageDoc, type PageDoc, type PageKey } from "./pages";
@@ -103,16 +104,22 @@ async function readCurrent() {
 const readForVisitors = cache(readCached);
 const readForAdmin = cache(readCurrent);
 
-/** What visitors see — or, while an admin previews (Next draft mode), the saved drafts. */
+/**
+ * Whether this request shows saved drafts: only while the signed-in admin previews (Next draft mode).
+ * A preview left switched on in any other browser shows the live site.
+ */
+export const isPreviewing = cache(async () => (await draftMode()).isEnabled && Boolean(await getAdmin()));
+
+/** What visitors see — or, while the admin previews, the saved drafts. */
 export async function getLive(): Promise<Site> {
-  if (!(await draftMode()).isEnabled) return { pages: PAGES, hub: (await readForVisitors()).live.hub };
+  if (!(await isPreviewing())) return { pages: PAGES, hub: (await readForVisitors()).live.hub };
   const file = await readForAdmin();
   return { pages: PAGES, hub: file.drafts.hub ?? file.live.hub };
 }
 
 /** Public view of the Hub for this request (drafts included while an admin previews). */
 export async function getPublicHub(): Promise<Hub> {
-  return publicHub((await getLive()).hub, (await draftMode()).isEnabled);
+  return publicHub((await getLive()).hub, await isPreviewing());
 }
 
 /** What the admin edits: the saved draft if there is one, else the live copy. */
@@ -128,10 +135,15 @@ let queue: Promise<unknown> = Promise.resolve();
  * `uploaded` (files the editor added since it opened) that nothing uses.
  * Reads once: everything after that is worked out from what the save is writing.
  */
-function change({ live, draft }: HubChange, uploaded: string[]): Promise<void> {
+function change({ live: newLive, draft }: HubChange, uploaded: string[], hideDrafted = false): Promise<void> {
   const run = queue.then(async () => {
     const stored = firebaseEnabled ? await readContent() : null;
     const before = stored ? normalize(stored) : await readFromDisk();
+    let live = newLive;
+    if (hideDrafted && draft && !live) {
+      const hidden = hideDraftedInLive(before.live.hub, draft);
+      if (hidden !== before.live.hub) live = hidden;
+    }
     const after: StoreFile = {
       version: 2,
       live: { hub: live ?? before.live.hub },
@@ -149,8 +161,9 @@ function change({ live, draft }: HubChange, uploaded: string[]): Promise<void> {
   return run;
 }
 
+/** Saves the draft. Anything it marks as Draft also leaves the live site now; the rest waits for Publish. */
 export function saveDraft(hub: Hub, uploaded: string[] = []) {
-  return change({ draft: hub }, uploaded);
+  return change({ draft: hub }, uploaded, true);
 }
 
 export function publish(hub: Hub, uploaded: string[] = []) {

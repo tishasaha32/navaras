@@ -31,7 +31,8 @@ export async function POST(req: Request) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    path: "/admin",
+    // Site-wide, so public pages can tell the admin's draft preview from anyone else's.
+    path: "/",
     maxAge: MAX_AGE_S,
   });
   return NextResponse.json({ ok: true });
@@ -39,6 +40,6 @@ export async function POST(req: Request) {
 
 /** Signs the admin out of the admin. */
 export async function DELETE() {
-  (await cookies()).delete({ name: ADMIN_COOKIE, path: "/admin" });
+  (await cookies()).delete({ name: ADMIN_COOKIE, path: "/" });
   return NextResponse.json({ ok: true });
 }
