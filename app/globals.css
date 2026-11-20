@@ -3183,3 +3183,85 @@ body:has(.reader) .site-footer {
   font-size: 15px;
   color: var(--gold-soft);
 }
+
+/* ---------- Launch countdown (app/coming-soon) ---------- */
+
+.launch {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 96px 16px 64px;
+  background: radial-gradient(ellipse at 50% 42%, var(--ivory) 0%, var(--cream) 55%, var(--sand) 100%);
+  text-align: center;
+}
+.launch__inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 760px;
+}
+.launch__logo {
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+}
+.launch .lead {
+  margin: 0 auto;
+}
+
+.countdown {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+.countdown__part {
+  display: flex;
+  align-items: flex-start;
+}
+.countdown__unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.countdown__num {
+  min-width: clamp(78px, 21vw, 128px);
+  padding: clamp(14px, 3vw, 22px) clamp(8px, 2vw, 16px);
+  border: 1px solid var(--line-gold);
+  border-radius: 18px;
+  background: var(--maroon);
+  box-shadow: var(--shadow-frame);
+  color: var(--gold-soft);
+  font-family: var(--font-display);
+  font-size: clamp(40px, 9vw, 76px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.countdown__label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.countdown__sep {
+  padding: clamp(14px, 3vw, 22px) clamp(4px, 1.4vw, 12px) 0;
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: clamp(32px, 7vw, 60px);
+  line-height: 1;
+}
+.countdown__open {
+  margin-top: 14px;
+  color: var(--rose);
+  font-family: var(--font-display);
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 600;
+}

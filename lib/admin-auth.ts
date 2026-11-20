@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { cache } from "react";
+import { ADMIN_COOKIE } from "@/lib/admin-cookie";
 import { adminAuth } from "@/lib/firebase-admin";
 import { isAdminEmail } from "@/lib/admin-email";
 
@@ -8,7 +9,7 @@ import { isAdminEmail } from "@/lib/admin-email";
  * server has checked the Google sign-in belongs to ADMIN_EMAIL. Every admin page, action and
  * route checks it here, so the browser can't skip the check.
  */
-export const ADMIN_COOKIE = "navaras_admin";
+export { ADMIN_COOKIE };
 export const SESSION_DAYS = 5;
 
 async function check(checkRevoked: boolean): Promise<{ email: string } | null> {
