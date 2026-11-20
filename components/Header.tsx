@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 type NavLink = { href: string; label: string; current?: boolean };
 
-export default function Header({ links, cta, onSignOut }: { links: NavLink[]; cta?: NavLink; onSignOut?: () => void }) {
+export default function Header({ links, cta, onSignOut, showAdmin = false }: { links: NavLink[]; cta?: NavLink; onSignOut?: () => void; showAdmin?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -58,10 +58,12 @@ export default function Header({ links, cta, onSignOut }: { links: NavLink[]; ct
                 {l.label}
               </Link>
             ))}
-            {/* Open for now; Firebase will put /admin behind a sign-in later. */}
-            <Link href="/admin" aria-current={pathname.startsWith("/admin") ? "page" : undefined} onClick={() => setOpen(false)}>
-              Admin
-            </Link>
+            {/* Only for the admin's account; the admin itself checks again on the server. */}
+            {showAdmin && (
+              <Link href="/admin" aria-current={pathname.startsWith("/admin") ? "page" : undefined} onClick={() => setOpen(false)}>
+                Admin
+              </Link>
+            )}
             {cta?.label && cta.href && (
               <Link href={cta.href} className="btn btn--saffron" onClick={() => setOpen(false)}>
                 {cta.label}

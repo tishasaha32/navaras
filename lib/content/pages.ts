@@ -81,8 +81,6 @@ const landing: PageSchema = {
             { label: "Dresses", href: "/navaras-dresses" },
           ],
         },
-        { k: "cta", label: "Highlighted button", t: "text", v: "Free trial class" },
-        { k: "ctaHref", label: "Highlighted button goes to", t: "text", v: "/navaras-dance-company#trial" },
       ],
     },
     {

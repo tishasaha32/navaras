@@ -1448,6 +1448,14 @@ textarea.adm-input {
 .adm-login .adm-brand {
   color: var(--a-maroon);
 }
+.adm-login__card p {
+  margin: 0;
+  color: var(--a-muted);
+}
+.adm .adm-login__error {
+  color: var(--a-danger);
+  font-weight: 600;
+}
 .adm-form {
   display: flex;
   flex-direction: column;

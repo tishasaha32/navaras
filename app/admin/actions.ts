@@ -2,6 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/admin-auth";
 import { MAX_AUDIO_MB, MAX_VIDEO_MB, type Hub } from "@/lib/content/hub";
 import { AUDIO_NAME, UPLOAD_NAME, VIDEO_NAME, listImages } from "@/lib/content/images";
 import { deleteUnusedUpload, publish, saveDraft } from "@/lib/content/store";
@@ -10,11 +11,6 @@ import { parseHub } from "@/lib/content/validate";
 
 export type ActionResult = { ok: true; url?: string } | { ok: false; error: string };
 
-/**
- * The admin is open for now. Firebase Authentication will protect it later:
- * check the signed-in user here (every action calls this) and in a middleware for /admin.
- */
-async function requireAdmin() {}
 
 /* ---------- Content ---------- */
 

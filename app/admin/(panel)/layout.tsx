@@ -1,8 +1,13 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import AdminSignOut from "@/components/admin/AdminSignOut";
+import { getAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-export default function PanelLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+/** Everything in the admin panel is for the admin only: anyone else is sent to sign in. */
+export default async function PanelLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  if (!(await getAdmin())) redirect("/admin/login");
   return (
     <>
       <header className="adm-top">
@@ -20,6 +25,7 @@ export default function PanelLayout({ children }: Readonly<{ children: React.Rea
                 <path d="M7 17L17 7M9 7h8v8" />
               </svg>
             </Link>
+            <AdminSignOut />
           </div>
         </div>
       </header>

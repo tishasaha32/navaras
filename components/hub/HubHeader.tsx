@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
+import { isAdminEmail } from "@/lib/admin-email";
 import { HUB_PATH } from "@/lib/content/hub";
 import { loginHref } from "./HubBar";
 import { useLearner } from "./LearnerProvider";
@@ -24,6 +25,8 @@ export default function HubHeader() {
       ]}
       cta={ready && !learner && !onLogin ? { href: loginHref(pathname), label: "Log in" } : undefined}
       onSignOut={learner ? () => void signOut() : undefined}
+      // Google accounts are verified; the admin checks again on the server.
+      showAdmin={isAdminEmail(learner?.email, Boolean(learner?.email))}
     />
   );
 }
