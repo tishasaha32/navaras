@@ -5,9 +5,12 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin-auth";
 import { MAX_AUDIO_MB, MAX_VIDEO_MB, type Hub } from "@/lib/content/hub";
 import { AUDIO_NAME, UPLOAD_NAME, VIDEO_NAME, listImages } from "@/lib/content/images";
-import { deleteUnusedUpload, publish, saveDraft } from "@/lib/content/store";
+import { uploadsUsed } from "@/lib/content/hub-docs";
+import { writeRental } from "@/lib/content/rental";
+import { deleteUnusedUpload, deleteUploadsNoLongerUsed, publish, saveDraft } from "@/lib/content/store";
 import { saveUpload } from "@/lib/content/uploads";
 import { parseHub } from "@/lib/content/validate";
+import { parseRental } from "@/lib/content/validate-rental";
 
 export type ActionResult = { ok: true; url?: string } | { ok: false; error: string };
 
@@ -34,6 +37,24 @@ export async function saveHub(data: unknown, mode: "draft" | "publish", uploaded
   else await saveDraft(parsed.hub, discardable);
   refresh();
   return { ok: true, hub: parsed.hub };
+}
+
+/* ---------- Rental shop ---------- */
+
+/**
+ * Saves the whole rental shop (dresses and jewellery); it's live on the Dresses page straight away.
+ * Photos it stopped using, and any of `uploaded` (added in this editor) it never used, are deleted
+ * unless the Hub uses them.
+ */
+export async function saveRental(data: unknown, uploaded: unknown = []): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = parseRental(data);
+  if (!parsed.ok) return parsed;
+  const before = await writeRental(parsed.rental);
+  const discardable = Array.isArray(uploaded) ? uploaded.filter(isUploadName) : [];
+  await deleteUploadsNoLongerUsed([...uploadsUsed(before), ...discardable]);
+  revalidatePath("/navaras-dresses");
+  return { ok: true };
 }
 
 /* ---------- Uploads ---------- */

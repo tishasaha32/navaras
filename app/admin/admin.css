@@ -1487,3 +1487,86 @@ textarea.adm-input {
     padding: 12px;
   }
 }
+
+/* ---------- Admin menu ---------- */
+
+.adm-nav {
+  display: flex;
+  gap: 4px;
+  margin-right: auto;
+}
+.adm .adm-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--a-sand);
+  font-weight: 600;
+  text-decoration: none;
+}
+.adm .adm-nav a:hover {
+  background: rgba(255, 251, 243, 0.1);
+}
+.adm .adm-nav a[aria-current="page"] {
+  background: var(--a-gold-soft);
+  color: var(--a-maroon-deep);
+}
+
+/* ---------- Rental shop editor ---------- */
+
+.adm-rental-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--a-sand);
+  border: 1px solid var(--a-line);
+}
+.adm .adm-rental-switch button {
+  min-height: 38px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--a-muted);
+  font-weight: 700;
+  cursor: pointer;
+}
+.adm .adm-rental-switch button span {
+  font-weight: 500;
+  opacity: 0.75;
+}
+.adm .adm-rental-switch button[aria-pressed="true"] {
+  background: var(--a-maroon);
+  color: var(--a-panel);
+}
+.adm-rental-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.adm .adm-rental-row {
+  min-height: 56px;
+  padding: 6px 8px;
+}
+.adm-rental-row__thumb {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--a-sand);
+  border: 1px solid var(--a-line-soft);
+}
+.adm-rental-row__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.adm-rental-row__name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

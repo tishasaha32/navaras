@@ -10,6 +10,7 @@ import { hideDraftedInLive, publicHub, upgradeChapters, type Hub } from "./hub";
 import { uploadsUsed } from "./hub-docs";
 import { seedHub } from "./hub-seed";
 import { PAGE_KEYS, PAGE_SCHEMAS, normalizePageDoc, type PageDoc, type PageKey } from "./pages";
+import { readRental } from "./rental";
 import { DATA_DIR } from "./paths";
 import { deleteUpload } from "./uploads";
 
@@ -153,7 +154,8 @@ function change({ live: newLive, draft }: HubChange, uploaded: string[], hideDra
     else await writeToDisk(after);
     shared.contentCache = { file: after, at: Date.now(), saved: true };
     shared.contentSaves = (shared.contentSaves ?? 0) + 1;
-    const used = uploadsUsed(after);
+    // The rental shop's photos count too, so a Hub save never deletes one.
+    const used = new Set([...uploadsUsed(after), ...uploadsUsed(await readRental())]);
     const unused = new Set([...uploadsUsed(before), ...uploaded].filter((name) => !used.has(name)));
     await Promise.all([...unused].map((name) => deleteUpload(name).catch(console.error)));
   });
@@ -170,9 +172,21 @@ export function publish(hub: Hub, uploaded: string[] = []) {
   return change({ live: hub, draft: null }, uploaded);
 }
 
+/** Uploaded files the Hub or the rental shop uses. */
+async function uploadsInUse(): Promise<Set<string>> {
+  const [hub, rental] = await Promise.all([readFresh(), readRental()]);
+  return new Set([...uploadsUsed(hub), ...uploadsUsed(rental)]);
+}
+
 /** Deletes an uploaded file nothing uses any more. Returns false if something still does. */
 export async function deleteUnusedUpload(name: string): Promise<boolean> {
-  if (uploadsUsed(await readFresh()).has(name)) return false;
+  if ((await uploadsInUse()).has(name)) return false;
   await deleteUpload(name);
   return true;
+}
+
+/** Deletes whichever of `names` (uploaded files) neither the Hub nor the rental shop uses. */
+export async function deleteUploadsNoLongerUsed(names: Iterable<string>) {
+  const used = await uploadsInUse();
+  await Promise.all([...new Set(names)].filter((n) => !used.has(n)).map((n) => deleteUpload(n).catch(console.error)));
 }

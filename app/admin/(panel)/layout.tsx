@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import AdminNav from "@/components/admin/AdminNav";
 import AdminSignOut from "@/components/admin/AdminSignOut";
 import { getAdmin } from "@/lib/admin-auth";
 import { ADMIN_HOME } from "@/lib/admin-email";
@@ -19,6 +20,7 @@ export default async function PanelLayout({ children }: Readonly<{ children: Rea
             <span className="adm-brand__name">Navaras</span>
             <span className="adm-brand__tag">Admin</span>
           </Link>
+          <AdminNav />
           <div className="adm-top__tools">
             <Link href="/" target="_blank" className="adm-top__link">
               View site

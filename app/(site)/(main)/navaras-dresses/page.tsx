@@ -4,6 +4,7 @@ import ArchVideo from "@/components/ArchVideo";
 import DressShop from "@/components/dresses/DressShop";
 import { ArchImage, Divider, Highlight, Mandala, Toran } from "@/components/ui";
 import { section } from "@/lib/content/pages";
+import { getRental } from "@/lib/content/rental";
 import { getLive } from "@/lib/content/store";
 
 export const metadata: Metadata = {
@@ -12,7 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function DressesPage() {
-  const doc = (await getLive()).pages.dresses;
+  const [{ pages }, rental] = await Promise.all([getLive(), getRental()]);
+  const doc = pages.dresses;
   const hero = section(doc, "hero");
   const catalogue = section(doc, "catalogue");
   const jewellery = section(doc, "jewellery");
@@ -64,7 +66,7 @@ export default async function DressesPage() {
           catalogue.visible
             ? {
                 categories: catalogue.list("categories").map((c) => c.label).filter(Boolean),
-                items: catalogue.list("items"),
+                items: rental.dresses,
               }
             : null
         }
@@ -72,7 +74,7 @@ export default async function DressesPage() {
           jewellery.visible
             ? {
                 categories: jewellery.list("categories").map((c) => c.label).filter(Boolean),
-                items: jewellery.list("items"),
+                items: rental.jewellery,
               }
             : null
         }
