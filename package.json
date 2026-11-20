@@ -44,6 +44,7 @@
   "overrides": {
     "sanitize-html": {
       "postcss": "$postcss"
-    }
+    },
+    "jwks-rsa": "3.2.2"
   }
 }
