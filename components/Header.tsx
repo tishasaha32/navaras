@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ADMIN_HOME } from "@/lib/admin-email";
 
 type NavLink = { href: string; label: string; current?: boolean };
 
@@ -60,7 +61,7 @@ export default function Header({ links, cta, onSignOut, showAdmin = false }: { l
             ))}
             {/* Only for the admin's account; the admin itself checks again on the server. */}
             {showAdmin && (
-              <Link href="/admin" aria-current={pathname.startsWith("/admin") ? "page" : undefined} onClick={() => setOpen(false)}>
+              <Link href={ADMIN_HOME} aria-current={pathname.startsWith("/admin") ? "page" : undefined} onClick={() => setOpen(false)}>
                 Admin
               </Link>
             )}

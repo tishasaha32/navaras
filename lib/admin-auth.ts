@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { adminAuth } from "@/lib/firebase-admin";
 import { isAdminEmail } from "@/lib/admin-email";
 
@@ -10,17 +11,22 @@ import { isAdminEmail } from "@/lib/admin-email";
 export const ADMIN_COOKIE = "navaras_admin";
 export const SESSION_DAYS = 5;
 
-/** The signed-in admin, or null for anyone else. Revoked or expired sessions don't count. */
-export async function getAdmin(): Promise<{ email: string } | null> {
+async function check(checkRevoked: boolean): Promise<{ email: string } | null> {
   const value = (await cookies()).get(ADMIN_COOKIE)?.value;
   if (!value) return null;
   try {
-    const decoded = await adminAuth().verifySessionCookie(value, true);
+    const decoded = await adminAuth().verifySessionCookie(value, checkRevoked);
     return isAdminEmail(decoded.email, decoded.email_verified) ? { email: decoded.email! } : null;
   } catch {
     return null;
   }
 }
+
+/**
+ * The signed-in admin, or null for anyone else. For showing pages: the session's signature and
+ * expiry are checked here on the server, and the result is shared by everything in one request.
+ */
+export const getAdmin = cache(() => check(false));
 
 export class NotAdminError extends Error {
   constructor() {
@@ -28,7 +34,7 @@ export class NotAdminError extends Error {
   }
 }
 
-/** Stops any admin action that isn't from the admin. */
+/** Stops any admin action that isn't from the admin. Changes also ask Firebase whether the session was revoked. */
 export async function requireAdmin() {
-  if (!(await getAdmin())) throw new NotAdminError();
+  if (!(await check(true))) throw new NotAdminError();
 }

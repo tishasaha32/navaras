@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import AdminSignOut from "@/components/admin/AdminSignOut";
 import { getAdmin } from "@/lib/admin-auth";
+import { ADMIN_HOME } from "@/lib/admin-email";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default async function PanelLayout({ children }: Readonly<{ children: Rea
       <header className="adm-top">
         <img src="/images/mandala-gold.svg" alt="" aria-hidden="true" className="adm-top__mandala" />
         <div className="adm-wrap adm-top__bar">
-          <Link href="/admin" className="adm-brand">
+          <Link href={ADMIN_HOME} className="adm-brand">
             <img src="/images/logo.png" alt="" />
             <span className="adm-brand__name">Navaras</span>
             <span className="adm-brand__tag">Admin</span>

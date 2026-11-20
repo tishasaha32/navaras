@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ADMIN_HOME } from "@/lib/admin-email";
 
 /** Google sign-in for the admin. The server decides whether the account may come in. */
 export default function AdminLogin() {
@@ -23,7 +24,7 @@ export default function AdminLogin() {
         body: JSON.stringify({ idToken: await user.getIdToken(true) }),
       });
       if (res.ok) {
-        router.replace("/admin");
+        router.replace(ADMIN_HOME);
         router.refresh();
         return;
       }
