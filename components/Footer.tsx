@@ -30,15 +30,13 @@ const columns = [
       { href: "/navaras-dance-company", label: "Navaras Dance Company" },
       { href: "/navaras-weddings", label: "Navaras Weddings" },
       { href: "/navaras-dresses", label: "Navaras Dresses" },
-      { href: "/navaras-dance-company#trial", label: "Free trial class" },
     ],
   },
   {
     title: "Navaras",
     links: [
       { href: `${HUB_PATH}/my-learning`, label: "My learning" },
-      { href: "/navaras-dance-company#portal", label: "Student portal" },
-      { href: "#contact", label: "Contact us" },
+      { href: "/contact", label: "Contact us" },
     ],
   },
 ];
@@ -128,8 +126,8 @@ export default function Footer({ contact, categories }: { contact: Contact; cate
           <div className="footer-bottom">
             <span>© {new Date().getFullYear()} Navaras. All rights reserved.</span>
             <span style={{ display: "flex", gap: 20 }}>
-              <a href="#">Privacy policy</a>
-              <a href="#">Terms</a>
+              <Link href="/privacy">Privacy policy</Link>
+              <Link href="/terms">Terms</Link>
             </span>
           </div>
         </div>

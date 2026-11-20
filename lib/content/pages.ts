@@ -203,7 +203,7 @@ const landing: PageSchema = {
       fields: [
         { k: "tagline", label: "Tagline", t: "area", v: "The Natyashastra, taught simply — and dance, celebration and costume built on it." },
         { k: "news", label: "Newsletter heading", t: "text", v: "Get new Hub concepts in your inbox" },
-        { k: "wa", label: "WhatsApp number", t: "text", v: "", ph: "+91 …" },
+        { k: "wa", label: "WhatsApp number", t: "text", v: "+91 96632 52637", ph: "+91 …", help: "Also used by the Contact us page." },
         { k: "email", label: "Email", t: "text", v: "", ph: "hello@…" },
         { k: "city", label: "City", t: "text", v: "", ph: "Your city" },
         { k: "ig", label: "Instagram link", t: "text", v: "", ph: "https://instagram.com/…" },
