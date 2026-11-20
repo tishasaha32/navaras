@@ -14,6 +14,14 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
+// Without this the build fails with Firebase's bare "auth/invalid-api-key" when the host has no env vars.
+if (!firebaseConfig.apiKey) {
+  throw new Error(
+    "NEXT_PUBLIC_FIREBASE_API_KEY is not set. Add the NEXT_PUBLIC_FIREBASE_* values from .env.example to .env.local, " +
+      "or to the host's environment variables (on Vercel: Project → Settings → Environment Variables), then build again.",
+  );
+}
+
 export const app = getApps()[0] ?? initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
