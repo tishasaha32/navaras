@@ -42,7 +42,7 @@ export default async function DressesPage() {
         </div>
         {hero.text("reel") ? (
           <div style={{ flex: "1 1 420px" }}>
-            <ArchVideo src={hero.text("reel")} title="Navaras Dresses costumes and jewellery" tall />
+            <ArchVideo src={hero.text("reel")} title="Navaras Dresses costumes and jewellery" />
           </div>
         ) : (
           hero.text("img") && (

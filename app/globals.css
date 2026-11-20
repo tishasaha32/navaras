@@ -442,11 +442,8 @@ button {
   position: relative;
   width: 440px;
   max-width: calc(100% - 32px);
-  aspect-ratio: 3 / 4;
-  margin: 16px;
-}
-.arch--tall {
   aspect-ratio: 2 / 3;
+  margin: 16px;
 }
 .arch__ring {
   position: absolute;

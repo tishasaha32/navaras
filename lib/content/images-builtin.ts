@@ -26,5 +26,5 @@ export const IMG = {
   homeWeddings: "/images/home-nw.jpg",
   homeDresses: "/images/home-nd.jpg",
   homeHub: "/images/home-natyashastra.jpg",
-  homeHero: "/images/home-hero.jpg",
+  homeHero: "/images/home-hero-2.jpg",
 } as const;

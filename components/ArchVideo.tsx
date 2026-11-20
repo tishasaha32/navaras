@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
  * A muted, looping video in the arched frame, like a moving ArchImage. Visitors who ask for
  * reduced motion get it paused; everyone can pause it and turn the sound on.
  */
-export default function ArchVideo({ src, title, tall = false }: { src: string; title: string; /** A 2:3 arch instead of 3:4, for tall videos. */ tall?: boolean }) {
+export default function ArchVideo({ src, title }: { src: string; title: string }) {
   const video = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -33,7 +33,7 @@ export default function ArchVideo({ src, title, tall = false }: { src: string; t
 
   return (
     <div className="arch-wrap">
-      <div className={`arch${tall ? " arch--tall" : ""}`}>
+      <div className="arch">
         <div className="arch__ring" aria-hidden="true" />
         <video
           ref={video}
