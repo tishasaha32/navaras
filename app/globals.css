@@ -966,6 +966,14 @@ button {
     border-top: none;
   }
 }
+/* The newsletter's bot trap: out of sight and out of the tab order. */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
 .footer-input {
   min-height: 50px;
   padding: 0 16px;

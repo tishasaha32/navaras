@@ -3,6 +3,7 @@ import type { Category } from "@/lib/content/hub";
 import { HUB_PATH } from "@/lib/content/hub";
 import FooterBrand from "./FooterBrand";
 import FooterDetails from "./FooterDetails";
+import NewsletterForm from "./NewsletterForm";
 import { Mandala, Toran, WhatsAppIcon } from "./ui";
 
 export type Contact = {
@@ -79,18 +80,7 @@ export default function Footer({ contact, categories }: { contact: Contact; cate
             </FooterColumn>
             {contact.newsletter && (
               <FooterColumn title="Newsletter" className="footer-news">
-                <form style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <span style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 600, color: "var(--ivory)" }}>{contact.newsletter}</span>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    <label style={{ flex: "1 1 240px", display: "flex", flexDirection: "column", gap: 6, fontSize: 13, fontWeight: 600 }}>
-                      Email address
-                      <input type="email" placeholder="you@example.com" className="footer-input" />
-                    </label>
-                    <button type="button" className="btn btn--saffron btn--sm" style={{ alignSelf: "flex-end", minHeight: 50 }}>
-                      Subscribe
-                    </button>
-                  </div>
-                </form>
+                <NewsletterForm heading={contact.newsletter} />
               </FooterColumn>
             )}
           </div>
