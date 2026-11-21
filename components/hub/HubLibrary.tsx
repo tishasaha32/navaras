@@ -265,7 +265,7 @@ export default function HubLibrary({ hub, initialCategory }: { hub: HubSummary; 
             <ol className="grid-auto" style={{ "--min": "260px", margin: 0, padding: 0, listStyle: "none", gap: 20 } as React.CSSProperties}>
               {[
                 ["१", "Read any chapter", "Every chapter, photo and video is open to everyone."],
-                ["२", "Create a free account", "Log in with Google or your phone number."],
+                ["२", "Create a free account", "Log in with your Google account."],
                 ["३", "Track and test yourself", "Mark chapters as read, take quizzes and keep your scores."],
               ].map(([n, title, text], i) => (
                 <li key={n} className={`card card--center${i === 2 ? " card--maroon" : ""}`}>

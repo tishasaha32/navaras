@@ -1243,20 +1243,6 @@ button {
   gap: 10px;
   margin-bottom: 10px;
 }
-.auth-form__back {
-  align-self: center;
-  padding: 8px;
-  border: none;
-  background: none;
-  color: var(--maroon);
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-}
-.auth-form__back:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
 .auth-form__terms {
   width: 100%;
   max-width: 400px;

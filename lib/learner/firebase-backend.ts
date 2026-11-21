@@ -1,12 +1,5 @@
 import { FirebaseError } from "firebase/app";
-import {
-  GoogleAuthProvider,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  signInWithPopup,
-  signOut,
-  type User,
-} from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut, type User } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { LearnerError, emptyProgress, type Learner, type LearnerBackend, type Progress } from "./types";
@@ -26,10 +19,6 @@ const MESSAGES: Record<string, string> = {
   "auth/popup-closed-by-user": "Google sign-in was closed before it finished.",
   "auth/cancelled-popup-request": "Google sign-in was closed before it finished.",
   "auth/popup-blocked": "Your browser blocked the Google window. Allow pop-ups and try again.",
-  "auth/invalid-phone-number": "Enter a valid phone number, including the country code.",
-  "auth/invalid-verification-code": "That code isn’t right. Please check it and try again.",
-  "auth/code-expired": "That code has expired. Please ask for a new one.",
-  "auth/captcha-check-failed": "We couldn’t verify this browser. Please try again.",
   "auth/too-many-requests": "Too many attempts. Please wait a while and try again.",
   "auth/network-request-failed": "Check your connection and try again.",
 };
@@ -66,20 +55,6 @@ export const firebaseBackend: LearnerBackend = {
   },
 
   signInWithGoogle: () => guarded(async () => signedIn((await signInWithPopup(auth, new GoogleAuthProvider())).user)),
-
-  sendPhoneCode: (phone, recaptcha) =>
-    guarded(async () => {
-      // reCAPTCHA can't render twice into one element, so every attempt gets a fresh one.
-      const host = recaptcha.appendChild(document.createElement("div"));
-      const verifier = new RecaptchaVerifier(auth, host, { size: "invisible" });
-      try {
-        const confirmation = await signInWithPhoneNumber(auth, phone, verifier);
-        return (code) => guarded(async () => signedIn((await confirmation.confirm(code)).user));
-      } finally {
-        verifier.clear();
-        host.remove();
-      }
-    }),
 
   async signOut() {
     await signOut(auth);

@@ -18,8 +18,8 @@ export default function PrivacyPage() {
       <h2>What we collect</h2>
       <h3>When you sign in to the Natyashastra Hub</h3>
       <p>
-        You can sign in with Google or with your phone number. With Google we receive your name and email address; with a phone number we receive the number
-        and send a one-time code to it. While you learn, we save your progress: the chapters you mark as read, your quiz scores and the chapter you opened last,
+        You sign in with your Google account, and we receive your name and email address. If you signed in with your phone number before, we keep that
+        number with your account. While you learn, we save your progress: the chapters you mark as read, your quiz scores and the chapter you opened last,
         so you can pick up where you left off.
       </p>
       <h3>When you subscribe to our newsletter</h3>

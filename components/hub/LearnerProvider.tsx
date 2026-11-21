@@ -16,8 +16,6 @@ type Ctx = {
   /** True if saved progress couldn't be loaded, so changes won't be saved. */
   progressUnavailable: boolean;
   signInWithGoogle: () => Promise<void>;
-  /** Texts a code and returns the function that confirms it and signs in. */
-  sendPhoneCode: (phone: string, recaptcha: HTMLElement) => Promise<(code: string) => Promise<void>>;
   signOut: () => Promise<void>;
   setRead: (chapterId: string, read: boolean) => void;
   recordQuiz: (quizId: string, pct: number) => void;
@@ -94,10 +92,6 @@ export default function LearnerProvider({ children }: { children: React.ReactNod
       progress,
       progressUnavailable,
       signInWithGoogle: async () => void adopt(await backend.signInWithGoogle()),
-      sendPhoneCode: async (phone, recaptcha) => {
-        const confirm = await backend.sendPhoneCode(phone, recaptcha);
-        return async (code) => void adopt(await confirm(code));
-      },
       signOut: async () => {
         await backend.signOut();
         await adopt(null);
